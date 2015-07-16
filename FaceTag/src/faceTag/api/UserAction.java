@@ -4,7 +4,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 @Path("/user/{userid}")
-public class UserHandler{
+public class UserAction{
 	
 	
 	@GET
