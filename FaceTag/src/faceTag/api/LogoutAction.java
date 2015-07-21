@@ -14,6 +14,6 @@ public class LogoutAction{
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response logout(MultivaluedMap<String,String> multivaluedMap){
-		return Response.ok(AccountController.logout(multivaluedMap.getFirst("userID"), multivaluedMap.getFirst("token")), MediaType.APPLICATION_JSON).build();
+		return AccountController.logout(multivaluedMap.getFirst("userID"), multivaluedMap.getFirst("token"));
 	}
 }

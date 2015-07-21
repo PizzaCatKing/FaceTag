@@ -2,8 +2,11 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
+import org.bson.types.ObjectId;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 
@@ -22,10 +25,14 @@ public class FriendCollectionManager {
 				.withDocumentClass(Friend.class);
 		return coll;
 	}
-	//ID1 is us, ID2 is the friend
-	public static User addFriend(String userID, String friendID) {
-		//Check friend exists
+
+	// ID1 is us, ID2 is the friend
+	public static Friend addFriend(ObjectId userID, ObjectId friendID) throws MongoWriteException {
+		// Check friend exists
 		User friend = UserCollectionManager.getUser(friendID);
+		if (friend == null) {
+			return null;
+		}
 		Friend newFriend;
 		if (userID.equals(friendID)) {
 			return null;
@@ -34,30 +41,31 @@ public class FriendCollectionManager {
 		} else {
 			newFriend = new Friend(friendID, userID);
 		}
-		
-		
+
 		MongoCollection<Friend> coll = getFriendCollection();
 		coll.insertOne(newFriend);
-		return friend;
+		return newFriend;
 	}
-	
-	//ID1 is us, ID2 is the friend
-		public static Friend deleteFriend(String userID, String friendID) {
-			BasicDBObject friendToDelete;
-			if (userID.equals(friendID)) {
-				return null;
-			} else if (userID.compareTo(friendID) < 0) {
-				friendToDelete = new BasicDBObject("userID1", userID).append("userID2", friendID);
-			} else {
-				friendToDelete = new BasicDBObject("userID1", friendID).append("userID2", userID);
-			}
-			
-			MongoCollection<Friend> coll = getFriendCollection();
-			
-			return coll.findOneAndDelete(friendToDelete);
+
+	// ID1 is us, ID2 is the friend
+	public static Friend deleteFriend(ObjectId userID, ObjectId friendID) {
+		BasicDBObject friendToDelete;
+		if (userID.equals(friendID)) {
+			return null;
+		} else if (userID.compareTo(friendID) < 0) {
+			friendToDelete = new BasicDBObject("userID1", userID).append("userID2", friendID);
+		} else {
+			friendToDelete = new BasicDBObject("userID1", friendID).append("userID2", userID);
 		}
 
-	public static Boolean getFriendship(String id1, String id2) {
+		MongoCollection<Friend> coll = getFriendCollection();
+		Friend result = new Friend();
+		result.putAll(coll.findOneAndDelete(friendToDelete));
+		if(result.getUserID1() == null || result.getUserID1() == null) return null;
+		return result;
+	}
+
+	public static Boolean getFriendship(ObjectId id1, ObjectId id2) {
 
 		BasicDBObject query;
 		if (id1.equals(id2)) {
@@ -73,7 +81,7 @@ public class FriendCollectionManager {
 	}
 
 	// Returns all of user with userID's friends as user objects
-	public static Iterable<User> getFriendsForUser(String userID) {
+	public static BasicDBList getFriendsForUser(ObjectId userID) {
 		// Our user is user 1
 		BasicDBObject clause1 = new BasicDBObject("userID1", userID);
 		// Our user is user 2
@@ -81,26 +89,26 @@ public class FriendCollectionManager {
 
 		MongoCollection<Friend> coll = getFriendCollection();
 
-		FindIterable<Friend> search1 = coll.find(clause1);
-		FindIterable<Friend> search2 = coll.find(clause2);
+		FindIterable<BasicDBObject> search1 = coll.find(clause1,BasicDBObject.class);
+		FindIterable<BasicDBObject> search2 = coll.find(clause2,BasicDBObject.class);
 
-		BasicDBList or = new BasicDBList();
-		
+		BasicDBList results = new BasicDBList();
+
 		// We are friend 1 so we need to find all the friend 2s
-		for (Friend friend : search1) {
-			BasicDBObject friend2 = new BasicDBObject("userID", friend.get("userID2"));
-			or.add(friend2);
+		for (BasicDBObject friend : search1) {
+			BasicDBObject friendProfile = new BasicDBObject();
+			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) friend.get("userID2")));
+			results.add(friendProfile);
 		}
 
 		// We are friend 2 so we need to find all the friend 1s
-		for (Friend friend : search2) {
-			BasicDBObject friend1 = new BasicDBObject("userID", friend.get("userID1"));
-			or.add(friend1);
+		for (BasicDBObject friend : search2) {
+			BasicDBObject friendProfile = new BasicDBObject();
+			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) friend.get("userID1")));
+			results.add(friendProfile);
 		}
-
-		BasicDBObject query = new BasicDBObject("$or", or);
-
-		return UserCollectionManager.runQuery(query);
+		
+		return results;
 	}
 
 }

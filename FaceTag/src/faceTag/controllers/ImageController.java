@@ -6,10 +6,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.tomcat.util.codec.binary.Base64;
+import org.apache.commons.codec.binary.Base64;
+import org.bson.types.ObjectId;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.util.JSON;
 
 import faceTag.entities.Image;
 import faceTag.mongo.ImageCollectionManager;
@@ -17,24 +21,29 @@ import faceTag.mongo.ImageCollectionManager;
 public class ImageController {
 
 	final static String IMAGE_ROOT = "./images/";
-
 	// Add image
-	public static String uploadImage(String _id, String token, String title, String base64Image) {
+	public static Response uploadImage(String _id, String token, String title, String base64Image) {
 
 		if (!(StringTool.isValid(_id) && StringTool.isValid(token) && StringTool.isValid(title)
 				&& StringTool.isValid(base64Image))) {
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			return Response
+					.status(Response.Status.BAD_REQUEST)
+					.entity("{error: invlalid parameters}")
+					.type( MediaType.APPLICATION_JSON)
+	                .build();
 		}
-		TokenController.validateToken(_id, token);
-		Image newImage = ImageCollectionManager.addImage(_id, title);
+		Response tokenValidation = TokenController.validateToken(_id, token);
+		if(tokenValidation != null){
+			return tokenValidation;
+		}
+		Image newImage = ImageCollectionManager.addImage(new ObjectId(_id), title);
 
 		// Decode string to by byte array
-		byte[] imageDataBytes = Base64.decodeBase64(base64Image);
-
+		byte[] imageDataBytes = Base64.decodeBase64(base64Image.getBytes());
 		// Save byte array into file
 		FileOutputStream imageOutFile;
 		try {
-			File file = new File(IMAGE_ROOT + newImage.get("_id"));
+			File file = new File(IMAGE_ROOT + newImage.getID().toHexString());
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -48,26 +57,41 @@ public class ImageController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		return newImage.toString();
+		BasicDBObject toReturn = new BasicDBObject();
+		toReturn.putAll(newImage);
+		toReturn.put("_id", newImage.getID().toHexString());
+		toReturn.put("ownerID", newImage.getOwnerID().toHexString());
+		return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
 	}
 
 	// Get image
-	public static String getImage(String _id, String token, String imageID) {
+	public static Response getImage(String _id, String token, String imageID) {
 
 		if (!(StringTool.isValid(_id) && StringTool.isValid(token) && StringTool.isValid(imageID))) {
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			return Response
+					.status(Response.Status.BAD_REQUEST)
+					.entity("{error: invlalid parameters}")
+					.type( MediaType.APPLICATION_JSON)
+	                .build();
 		}
-		TokenController.validateToken(_id, token);
-		Image image = ImageCollectionManager.getImage(imageID);
+		Response tokenValidation = TokenController.validateToken(_id, token);
+		if(tokenValidation != null){
+			return tokenValidation;
+		}
+		Image image = ImageCollectionManager.getImage(new ObjectId(imageID));
 		if (image == null) {
-			return "";
+			// Image doesn't exist
+						return Response
+								.status(Response.Status.NOT_FOUND)
+								.entity("{error: image not found}")
+								.type( MediaType.APPLICATION_JSON)
+				                .build();
 		}
 		String imageDataString = null;
 		// Encode byte array to string
 		try {
-			File file = new File(IMAGE_ROOT + image.get("_id"));
-			FileInputStream imageInFile = new FileInputStream(IMAGE_ROOT + image.get("_id"));
+			File file = new File(IMAGE_ROOT + image.getID().toHexString());
+			FileInputStream imageInFile = new FileInputStream(IMAGE_ROOT + image.getID().toHexString());
 			byte imageData[] = new byte[(int) file.length()];
 			imageInFile.read(imageData);
 			
@@ -79,28 +103,49 @@ public class ImageController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		image.put("image", imageDataString);
-		return image.toString();
+		
+		BasicDBObject result = new BasicDBObject();
+		result.putAll(image);
+		result.put("_id", image.getID().toHexString());
+		result.put("ownerID", image.getOwnerID().toHexString());
+		result.put("base64Image", imageDataString);
+		return Response.ok(JSON.serialize(result), MediaType.APPLICATION_JSON).build();
 	}
 	// deleteImage
-	public static String deleteImage(String _id, String token, String imageID) {
+	public static Response deleteImage(String _id, String token, String imageID) {
 
 		if (!(StringTool.isValid(_id) && StringTool.isValid(token) && StringTool.isValid(imageID))) {
-			throw new WebApplicationException(Response.Status.BAD_REQUEST);
+			return Response
+					.status(Response.Status.BAD_REQUEST)
+					.entity("{error: invlalid parameters}")
+					.type( MediaType.APPLICATION_JSON)
+	                .build();
 		}
-		TokenController.validateToken(_id, token);
-		Image image = ImageCollectionManager.getImage(imageID);
+		Response tokenValidation = TokenController.validateToken(_id, token);
+		if(tokenValidation != null){
+			return tokenValidation;
+		}
+		Image image = ImageCollectionManager.getImage(new ObjectId(imageID));
 		if (image == null) {
-			return ""; // Image doesn't exist
+			// Image doesn't exist
+			return Response
+					.status(Response.Status.NOT_FOUND)
+					.entity("{error: image not found}")
+					.type( MediaType.APPLICATION_JSON)
+	                .build();
 		}
 
-		File file = new File(IMAGE_ROOT + image.get("_id"));
+		File file = new File(IMAGE_ROOT + image.getID().toHexString());
 		if(file.exists()){
 			file.delete();
 		}
 		
-		image = ImageCollectionManager.deleteImage(imageID);
+		image = ImageCollectionManager.deleteImage(new ObjectId(imageID));
 		
-		return image.toString();
+		BasicDBObject toReturn = new BasicDBObject();
+		toReturn.putAll(image);
+		toReturn.put("_id", image.getID().toHexString());
+		toReturn.put("ownerID", image.getOwnerID().toHexString());
+		return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
 	}
 }

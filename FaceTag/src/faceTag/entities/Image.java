@@ -6,19 +6,43 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.bson.types.ObjectId;
 
 import com.mongodb.DBObject;
 
 public class Image implements DBObject {
-	String _id;
-	String ownerID;
+	ObjectId _id;
+	ObjectId ownerID;
 	String title;
-
-	public Image(String ownerID, String title) {
+	
+	public Image(){}
+	
+	public Image(ObjectId ownerID, String title) {
 		super();
+		this._id = new ObjectId();
 		this.ownerID = ownerID;
 		this.title = title;
 	}
+
+	
+	
+	public ObjectId getID() {
+		return _id;
+	}
+
+
+
+	public ObjectId getOwnerID() {
+		return ownerID;
+	}
+
+
+
+	public String getTitle() {
+		return title;
+	}
+
+
 
 	@Override
 	public boolean containsField(String arg0) {
@@ -54,11 +78,11 @@ public class Image implements DBObject {
 	@Override
 	public Object put(String arg0, Object arg1) {
 		if (arg0.equals("_id")) {
-			_id = (String) arg1;
+			_id = (ObjectId) arg1;
 			return arg1;
 		}
 		if (arg0.equals("ownerID")) {
-			ownerID = (String) arg1;
+			ownerID = (ObjectId) arg1;
 			return arg1;
 		}
 		if (arg0.equals("title")) {
@@ -80,9 +104,9 @@ public class Image implements DBObject {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>) arg0;
 		if (map.containsKey("_id"))
-			this._id = (String) map.get("_id");
+			this._id = (ObjectId) map.get("_id");
 		if (map.containsKey("ownerID"))
-			this.ownerID = (String) map.get("ownerID");
+			this.ownerID = (ObjectId) map.get("ownerID");
 		if (map.containsKey("title"))
 			this.title = (String) map.get("title");
 	}

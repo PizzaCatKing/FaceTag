@@ -6,18 +6,26 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.bson.types.ObjectId;
 
 import com.mongodb.DBObject;
 
 public class User implements DBObject {
 
-	String _id;
+	ObjectId _id;
 	String name;
-
+	
+	public User(){}
+	
 	public User(String name) {
 		this.name = name;
+		_id = new ObjectId();
 	}
 
+	public ObjectId getID(){
+		return _id;
+	}
+	
 	@Override
 	public boolean containsField(String arg0) {
 		return (arg0.equals("_id") || arg0.equals("name"));
@@ -49,7 +57,7 @@ public class User implements DBObject {
 	@Override
 	public Object put(String arg0, Object arg1) {
 		if (arg0.equals("_id")) {
-			_id = (String) arg1;
+			_id = (ObjectId) arg1;
 			return arg1;
 		}
 		if (arg0.equals("name")) {
@@ -71,7 +79,7 @@ public class User implements DBObject {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>) arg0;
 		if (map.containsKey("_id"))
-			this._id = (String) map.get("_id");
+			this._id = (ObjectId) map.get("_id");
 		if (map.containsKey("name"))
 			this.name = (String) map.get("name");
 	}

@@ -14,6 +14,6 @@ public class SignUpAction{
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response signup(MultivaluedMap<String,String> multivaluedMap){
-		return Response.ok(AccountController.signUp(multivaluedMap.getFirst("username"), multivaluedMap.getFirst("password"), multivaluedMap.getFirst("name")), MediaType.APPLICATION_JSON).build();
+		return AccountController.signUp(multivaluedMap.getFirst("username"), multivaluedMap.getFirst("password"), multivaluedMap.getFirst("name"));
 	}
 }

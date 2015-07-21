@@ -1,6 +1,9 @@
 package faceTag.mongo;
 
 import java.net.UnknownHostException;
+
+import org.bson.types.ObjectId;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
@@ -21,13 +24,13 @@ public class AccountCollectionManager {
 
 	public static void addAccount(String username, String password, String name) throws MongoWriteException {
 		// Create a User entry, then create the account.
-		String userID = UserCollectionManager.addUser(name);
+		ObjectId userID = UserCollectionManager.addUser(name);
 
 		Account newAccount = new Account(userID, username, password);
 		MongoCollection<Account> coll = getAccountCollection();
-		
+
 		coll.insertOne(newAccount);
-		
+
 	}
 
 	public static Account checkPassword(String username, String password) {
@@ -35,8 +38,9 @@ public class AccountCollectionManager {
 		BasicDBObject query = new BasicDBObject("username", username).append("password", password);
 
 		MongoCollection<Account> coll = getAccountCollection();
-
-		return coll.find(query).first();
+		Account result = new Account();
+		result.putAll(coll.find(query).first());
+		return result;
 
 	}
 }

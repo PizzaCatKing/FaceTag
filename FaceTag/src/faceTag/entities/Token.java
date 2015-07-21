@@ -6,20 +6,29 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.bson.types.ObjectId;
 
 import com.mongodb.DBObject;
 
 public class Token implements DBObject {
 
-	String userID;
+	ObjectId userID;
 	String token;
 	
+	public Token(){}
 	
-	
-	public Token(String userID, String token) {
+	public Token(ObjectId userID, String token) {
 		super();
 		this.userID = userID;
 		this.token = token;
+	}
+	
+	public ObjectId getUserID() {
+		return userID;
+	}
+
+	public String getToken() {
+		return token;
 	}
 
 	@Override
@@ -53,7 +62,7 @@ public class Token implements DBObject {
 	@Override
 	public Object put(String arg0, Object arg1) {
 		if (arg0.equals("userID")) {
-			userID = (String) arg1;
+			userID = (ObjectId) arg1;
 			return arg1;
 		}
 		if (arg0.equals("token")) {
@@ -75,7 +84,7 @@ public class Token implements DBObject {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>) arg0;
 		if (map.containsKey("userID"))
-			this.userID = (String) map.get("userID");
+			this.userID = (ObjectId) map.get("userID");
 		if (map.containsKey("token"))
 			this.token = (String) map.get("token");
 	}

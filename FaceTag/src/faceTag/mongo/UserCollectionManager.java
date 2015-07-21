@@ -2,6 +2,8 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
+import org.bson.types.ObjectId;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -20,23 +22,28 @@ public class UserCollectionManager {
 		return coll;
 	}
 
-	public static User getUser(String _id) {
+	public static User getUser(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
 		MongoCollection<User> coll = getUserCollection();
-		return coll.find(query).first();
+
+		User result = new User();
+		result.putAll(coll.find(query).first());
+		return result;
 	}
 
-	public static User deleteUser(String _id) {
+	public static User deleteUser(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
 		MongoCollection<User> coll = getUserCollection();
-		return coll.findOneAndDelete(query);
+		User result = new User();
+		result.putAll(coll.findOneAndDelete(query));
+		return result;
 	}
 
-	public static String addUser(String name) {
+	public static ObjectId addUser(String name) {
 		User newUser = new User(name);
 		MongoCollection<User> coll = getUserCollection();
 		coll.insertOne(newUser);
-		return (String) newUser.get("_id");
+		return newUser.getID();
 	}
 
 	public static FindIterable<User> runQuery(BasicDBObject query) {

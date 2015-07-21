@@ -6,15 +6,18 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.bson.types.ObjectId;
 
 import com.mongodb.DBObject;
 
 public class Friend implements DBObject {
 
-	private String userID1; // Always smaller
-	private String userID2; // Always larger
+	private ObjectId userID1; // Always smaller
+	private ObjectId userID2; // Always larger
 
-	public Friend(String id1, String id2) {
+	public Friend(){}
+	
+	public Friend(ObjectId id1, ObjectId id2) {
 		if (id1.compareTo(id2) < 0) {
 			userID1 = id1;
 			userID2 = id2;
@@ -23,6 +26,17 @@ public class Friend implements DBObject {
 			userID2 = id1;
 		}
 	}
+
+	
+	
+	public ObjectId getUserID1() {
+		return userID1;
+	}
+
+	public ObjectId getUserID2() {
+		return userID2;
+	}
+
 
 	@Override
 	public boolean containsField(String arg0) {
@@ -55,11 +69,11 @@ public class Friend implements DBObject {
 	@Override
 	public Object put(String arg0, Object arg1) {
 		if (arg0.equals("userID1")) {
-			userID1 = (String) arg1;
+			userID1 = (ObjectId) arg1;
 			return arg1;
 		}
 		if (arg0.equals("userID2")) {
-			userID2 = (String) arg1;
+			userID2 = (ObjectId) arg1;
 			return arg1;
 		}
 		return null;
@@ -67,8 +81,10 @@ public class Friend implements DBObject {
 
 	@Override
 	public void putAll(BSONObject arg0) {
-		for (String key : arg0.keySet()) {
-			put(key, arg0.get(key));
+		if(arg0 != null){
+			for (String key : arg0.keySet()) {
+				put(key, arg0.get(key));
+			}
 		}
 	}
 
@@ -77,9 +93,9 @@ public class Friend implements DBObject {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>) arg0;
 		if (map.containsKey("userID1"))
-			this.userID1 = (String) map.get("userID1");
+			this.userID1 = (ObjectId) map.get("userID1");
 		if (map.containsKey("userID2"))
-			this.userID2 = (String) map.get("userID2");
+			this.userID2 = (ObjectId) map.get("userID2");
 	}
 
 	@Override
