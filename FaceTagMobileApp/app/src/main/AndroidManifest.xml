@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="facetag.facetagmobileapp" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -17,8 +19,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".signupActivity"
+            android:name=".SignupActivity"
             android:label="@string/title_activity_signup" >
+        </activity>
+        <activity
+            android:name=".MainMenuActivity"
+            android:label="@string/title_activity_main_menu" >
+        </activity>
+        <activity
+            android:name=".UserListActivity"
+            android:label="@string/title_activity_friends_list" >
+        </activity>
+        <activity
+            android:name=".UserViewActivity"
+            android:label="@string/title_activity_user_view" >
         </activity>
     </application>
 

@@ -10,7 +10,6 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 
 import faceTag.entities.Account;
-import faceTag.entities.Image;
 
 public class AccountCollectionManager {
 	private static MongoCollection<Account> getAccountCollection() {
@@ -42,7 +41,7 @@ public class AccountCollectionManager {
 		MongoCollection<Account> coll = getAccountCollection();
 				
 		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
-		if(queryResult != null ){
+		if(queryResult == null ){
 			return null;
 		}
 		Account result = new Account();

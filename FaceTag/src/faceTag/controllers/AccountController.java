@@ -43,7 +43,9 @@ public class AccountController {
 					.type( MediaType.APPLICATION_JSON)
 	                .build();
 		}
-		return Response.ok("Signup Sucess", MediaType.APPLICATION_JSON).build();
+		BasicDBObject toReturn = new BasicDBObject();
+		toReturn.put("message", "Success");
+		return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
 	}
 
 	public static Response login(String username, String password) {
@@ -58,8 +60,8 @@ public class AccountController {
 					.type( MediaType.APPLICATION_JSON)
 	                .build();
 		}
-
-		if (AccountCollectionManager.checkPassword(username, password) != null) {
+		Account userAccount = AccountCollectionManager.checkPassword(username, password);
+		if (userAccount != null) {
 			// Login sucessful, send userid and token
 			Token token = TokenCollectionManager.addToken(userAccount.getUserID());
 			BasicDBObject toReturn = new BasicDBObject();

@@ -1,6 +1,9 @@
 package facetag.facetagmobileapp;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -8,10 +11,29 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+
+import facetag.facetagmobileapp.entities.RestError;
+import facetag.facetagmobileapp.entities.Token;
+import facetag.facetagmobileapp.singletons.ObjectMapperSingleton;
 
 
 public class LoginActivity extends ActionBarActivity {
-
+    ProgressDialog ringProgressDialog;
     Button loginButton;
     Button signupButton;
     EditText usernameEditText;
@@ -29,14 +51,14 @@ public class LoginActivity extends ActionBarActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                new getTokenTask().execute(usernameEditText.getText().toString(), passwordEditText.getText().toString());
             }
         });
 
         signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(LoginActivity.this, signupActivity.class);
+                Intent i = new Intent(LoginActivity.this, SignupActivity.class);
                 startActivityForResult(i, Globals.ACCOUNT_MADE_CODE);
             }
         });
@@ -59,6 +81,102 @@ public class LoginActivity extends ActionBarActivity {
         }
     }
 
+
+    private class getTokenTask extends AsyncTask<String, Void, ResponseEntity<String>> {
+
+        @Override
+        protected ResponseEntity<String> doInBackground(String... params) {
+            if (params.length < 2) {
+                return null;
+            }
+
+            String username = params[0];
+            String password = params[1];
+
+            if (username == null || password == null) {
+                return null;
+            }
+
+            if (username.equals("") || password.equals("")) {
+                return null;
+            }
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/login")
+                    .queryParam("username", username)
+                    .queryParam("password", password);
+
+            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
+            ResponseEntity<String> result = restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(ResponseEntity<String> result) {
+            ringProgressDialog.dismiss();
+            if (result == null) {
+                //Invalid input! Tell the user to make better entries
+                Context context = getApplicationContext();
+                CharSequence text = "Please fill in all the fields";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            } else {
+                if (result.getStatusCode() == HttpStatus.OK) {
+                    //We got a good return!
+
+                    try {
+                        Token token = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), Token.class);
+                        // We have a valid token - go to main menu
+                        Intent i = new Intent(getApplicationContext(), MainMenuActivity.class);
+                        i.putExtra("token", token);
+                        startActivity(i);
+                        finish();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Context context = getApplicationContext();
+                        CharSequence text = "IO error while mapping token!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+
+
+                } else {
+                    RestError error;
+                    try {
+                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
+                        Context context = getApplicationContext();
+                        CharSequence text = "Error: " + error.getMessage();
+                        int duration = Toast.LENGTH_SHORT;
+
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Context context = getApplicationContext();
+                        CharSequence text = "IO error while mapping error!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+
+                }
+            }
+
+        }
+        @Override
+        protected void onPreExecute() {
+
+            ringProgressDialog = ProgressDialog.show(LoginActivity.this, "Please wait ...", "Logging in ...", true);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

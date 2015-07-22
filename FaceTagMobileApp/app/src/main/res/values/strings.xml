@@ -7,4 +7,7 @@
     <string name="title_activity_signup">signupActivity</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_main_menu">FaceTag</string>
+    <string name="title_activity_friends_list">FriendsListActivity</string>
+    <string name="title_activity_user_view">UserViewActivity</string>
 </resources>

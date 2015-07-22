@@ -28,7 +28,7 @@ public class ImageCollectionManager {
 		MongoCollection<Image> coll = getImageCollection();
 		
 		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
-		if(queryResult != null ){
+		if(queryResult == null ){
 			return null;
 		}
 		Image result = new Image();
