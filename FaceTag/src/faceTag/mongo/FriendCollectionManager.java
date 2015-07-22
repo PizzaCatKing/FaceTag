@@ -59,10 +59,12 @@ public class FriendCollectionManager {
 		}
 
 		MongoCollection<Friend> coll = getFriendCollection();
-		Friend result = new Friend();
-		result.putAll(coll.findOneAndDelete(friendToDelete));
-		if(result.getUserID1() == null || result.getUserID1() == null) return null;
-		return result;
+		
+		try {
+			return coll.findOneAndDelete(friendToDelete);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public static Boolean getFriendship(ObjectId id1, ObjectId id2) {

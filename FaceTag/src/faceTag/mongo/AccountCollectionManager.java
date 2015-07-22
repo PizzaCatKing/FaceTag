@@ -2,6 +2,7 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
+import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
@@ -9,6 +10,7 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 
 import faceTag.entities.Account;
+import faceTag.entities.Image;
 
 public class AccountCollectionManager {
 	private static MongoCollection<Account> getAccountCollection() {
@@ -38,9 +40,14 @@ public class AccountCollectionManager {
 		BasicDBObject query = new BasicDBObject("username", username).append("password", password);
 
 		MongoCollection<Account> coll = getAccountCollection();
+				
+		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
+		if(queryResult != null ){
+			return null;
+		}
 		Account result = new Account();
-		result.putAll(coll.find(query).first());
+		result.putAll((BSONObject)queryResult);
 		return result;
-
+		
 	}
 }

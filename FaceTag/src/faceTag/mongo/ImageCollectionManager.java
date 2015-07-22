@@ -2,6 +2,7 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
+import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
@@ -25,8 +26,13 @@ public class ImageCollectionManager {
 	public static Image getImage(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
 		MongoCollection<Image> coll = getImageCollection();
+		
+		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
+		if(queryResult != null ){
+			return null;
+		}
 		Image result = new Image();
-		result.putAll(coll.find(query).first());
+		result.putAll((BSONObject)queryResult);
 		return result;
 	}
 

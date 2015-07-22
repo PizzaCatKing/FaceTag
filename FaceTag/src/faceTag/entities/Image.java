@@ -94,8 +94,10 @@ public class Image implements DBObject {
 
 	@Override
 	public void putAll(BSONObject arg0) {
-		for (String key : arg0.keySet()) {
-			put(key, arg0.get(key));
+		if(arg0 != null){
+			for (String key : arg0.keySet()) {
+				put(key, arg0.get(key));
+			}
 		}
 	}
 

@@ -17,6 +17,10 @@ public class User implements DBObject {
 	
 	public User(){}
 	
+	public User(ObjectId _id) {
+		this._id = _id;
+	}
+	
 	public User(String name) {
 		this.name = name;
 		_id = new ObjectId();
@@ -69,8 +73,10 @@ public class User implements DBObject {
 
 	@Override
 	public void putAll(BSONObject arg0) {
-		for (String key : arg0.keySet()) {
-			put(key, arg0.get(key));
+		if(arg0 != null){
+			for (String key : arg0.keySet()) {
+				put(key, arg0.get(key));
+			}
 		}
 	}
 
