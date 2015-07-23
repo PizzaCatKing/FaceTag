@@ -20,8 +20,8 @@ public class ImageAction {
 
 	}
 
-	@DELETE
-	@Path("/{imageid}")
+	@POST
+	@Path("/{imageid}/delete")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteImage(@PathParam("imageid") String imageid, MultivaluedMap<String, String> multivaluedMap) {

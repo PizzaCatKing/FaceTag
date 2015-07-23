@@ -233,8 +233,8 @@ public class MainMenuActivity extends ActionBarActivity {
 
                     // We have a valid token - go to main menu
                     Intent i = new Intent(getApplicationContext(), UserListActivity.class);
-                    i.putExtra("friends", friends);
-                    i.putParcelableArrayListExtra("friends", friends);
+                    i.putParcelableArrayListExtra("users", friends);
+                    i.putExtra("token", token);
                     startActivity(i);
 
                 } catch (IOException e) {

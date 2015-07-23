@@ -48,8 +48,8 @@ public class UserAction {
 	}
 
 	// Remove a user as a friend
-	@DELETE
-	@Path("/friend")
+	@POST
+	@Path("/friend/delete")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response removeUserAsFriend(@PathParam("userid") String userid,

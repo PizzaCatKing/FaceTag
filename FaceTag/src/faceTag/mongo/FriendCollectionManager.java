@@ -2,6 +2,8 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
+import org.bson.BSONObject;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBList;
@@ -57,14 +59,15 @@ public class FriendCollectionManager {
 		} else {
 			friendToDelete = new BasicDBObject("userID1", friendID).append("userID2", userID);
 		}
-
-		MongoCollection<Friend> coll = getFriendCollection();
 		
-		try {
-			return coll.findOneAndDelete(friendToDelete);
-		} catch (Exception e) {
+		MongoCollection<Friend> coll = getFriendCollection();
+		BasicDBObject queryResult = coll.find(friendToDelete,BasicDBObject.class).first();
+		if(queryResult == null){
 			return null;
 		}
+		Friend result = new Friend();
+		result.putAll((BSONObject) queryResult);
+		return result;
 	}
 
 	public static Boolean getFriendship(ObjectId id1, ObjectId id2) {
@@ -91,8 +94,8 @@ public class FriendCollectionManager {
 
 		MongoCollection<Friend> coll = getFriendCollection();
 
-		FindIterable<BasicDBObject> search1 = coll.find(clause1,BasicDBObject.class);
-		FindIterable<BasicDBObject> search2 = coll.find(clause2,BasicDBObject.class);
+		FindIterable<BasicDBObject> search1 = coll.find(clause1, BasicDBObject.class);
+		FindIterable<BasicDBObject> search2 = coll.find(clause2, BasicDBObject.class);
 
 		BasicDBList results = new BasicDBList();
 
@@ -109,7 +112,7 @@ public class FriendCollectionManager {
 			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) friend.get("userID1")));
 			results.add(friendProfile);
 		}
-		
+
 		return results;
 	}
 

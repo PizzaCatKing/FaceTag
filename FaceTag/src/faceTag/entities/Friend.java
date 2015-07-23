@@ -6,11 +6,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bson.BSONObject;
+import org.bson.BsonDocument;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.DBObject;
 
-public class Friend implements DBObject {
+public class Friend implements DBObject, Bson {
 
 	private ObjectId userID1; // Always smaller
 	private ObjectId userID2; // Always larger
@@ -122,6 +125,14 @@ public class Friend implements DBObject {
 	@Override
 	public void markAsPartialObject() {
 		throw new RuntimeException("Unsupported method.");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <TDocument> BsonDocument toBsonDocument(Class<TDocument> documentClass, CodecRegistry codecRegistry) {
+		BsonDocument doc = new BsonDocument();
+		doc.putAll(this.toMap());
+		return doc;
 	}
 
 }
