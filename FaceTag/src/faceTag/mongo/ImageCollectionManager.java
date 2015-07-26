@@ -2,68 +2,59 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
-import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 
 import faceTag.entities.Image;
 
 public class ImageCollectionManager {
-	private static MongoCollection<Image> getImageCollection() {
+	private static DBCollection getImageCollection() {
 		try {
 			MongoDBSingleton.getInstance();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		MongoCollection<Image> coll = MongoDBSingleton.getDataBase().getCollection("Image")
-				.withDocumentClass(Image.class);
+		DBCollection coll = MongoDBSingleton.getDataBase().getCollection("Image");
 		return coll;
 	}
 
 	public static Image getImage(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
-		MongoCollection<Image> coll = getImageCollection();
+		DBCollection coll = getImageCollection();
 		
-		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
-		if(queryResult == null ){
-			return null;
-		}
-		Image result = new Image();
-		result.putAll((BSONObject)queryResult);
-		return result;
+		return (Image) coll.findOne(query);
+		
 	}
 
 	// BE SURE TO DELETE THE IMAGE OFF OF THE DRIVE BEFORE DELETING THE ENTRY IN
 	// THE DATABASE
-	public static Image deleteImage(ObjectId _id) {
+	public static boolean deleteImage(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
-		MongoCollection<Image> coll = getImageCollection();
-
-		Image result = new Image();
-		result.putAll(coll.findOneAndDelete(query));
-		return result;
+		DBCollection coll = getImageCollection();
+		// If at least 1 image was deleted we were successful
+		return coll.remove(query).getN() > 0;
 	}
 
 	// The image location on the drive is [IMAGE_DIR]/{_id}
 	public static Image addImage(ObjectId ownerID, String title) {
-		MongoCollection<Image> coll = getImageCollection();
+		DBCollection coll = getImageCollection();
 		Image imageObject = new Image(ownerID, title);
 
-		coll.insertOne(imageObject);
+		coll.insert(imageObject);
 		return imageObject;
 	}
 
-	public static FindIterable<BasicDBObject> getImagesForUser(ObjectId ownerID) {
+	public static DBCursor getImagesForUser(ObjectId ownerID) {
 		BasicDBObject query = new BasicDBObject("ownerID", ownerID);
-		MongoCollection<Image> coll = getImageCollection();
-		return coll.find(query, BasicDBObject.class);
+		DBCollection coll = getImageCollection();
+		return coll.find(query);
 	}
 
-	public static FindIterable<Image> runQuery(BasicDBObject query) {
-		MongoCollection<Image> coll = getImageCollection();
+	public static DBCursor runQuery(BasicDBObject query) {
+		DBCollection coll = getImageCollection();
 		return coll.find(query);
 	}
 }

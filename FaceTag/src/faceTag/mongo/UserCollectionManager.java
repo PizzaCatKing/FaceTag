@@ -2,57 +2,53 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
-import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import faceTag.entities.User;
 
 public class UserCollectionManager {
 
-	private static MongoCollection<User> getUserCollection() {
+	private static DBCollection getUserCollection() {
 		try {
 			MongoDBSingleton.getInstance();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		MongoCollection<User> coll = MongoDBSingleton.getDataBase().getCollection("User").withDocumentClass(User.class);
+		DBCollection coll = MongoDBSingleton.getDataBase().getCollection("User");
 		return coll;
 	}
-
+	
+	public static DBCursor getAllUsers() {
+		DBCollection coll = getUserCollection();
+		return coll.find();
+	}
+	
 	public static User getUser(ObjectId _id) {
 		BasicDBObject query = new BasicDBObject("_id", _id);
-		MongoCollection<User> coll = getUserCollection();
-
-		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
-		if(queryResult == null){
-			return null;
-		}
-		User result = new User();
-		result.putAll((BSONObject) queryResult);
-		return result;
+		DBCollection coll = getUserCollection();
+		
+		return (User) coll.findOne(query);
 	}
 
-	public static User deleteUser(ObjectId _id) {
+	public static boolean deleteUser(ObjectId _id){
 		BasicDBObject query = new BasicDBObject("_id", _id);
-		MongoCollection<User> coll = getUserCollection();
-		User result = new User();
-		result.putAll(coll.findOneAndDelete(query));
-		return result;
+		DBCollection coll = getUserCollection();
+		
+		return coll.remove(query).getN() > 0;
 	}
 
 	public static ObjectId addUser(String name) {
 		User newUser = new User(name);
-		MongoCollection<User> coll = getUserCollection();
-		coll.insertOne(newUser);
+		DBCollection coll = getUserCollection();
+		coll.insert(newUser);
 		return newUser.getID();
 	}
 
-	public static FindIterable<User> runQuery(BasicDBObject query) {
-		MongoCollection<User> coll = getUserCollection();
+	public static DBCursor runQuery(BasicDBObject query) {
+		DBCollection coll = getUserCollection();
 		return coll.find(query);
 	}
 }

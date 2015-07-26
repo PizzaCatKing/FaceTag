@@ -7,11 +7,20 @@ import javax.ws.rs.core.Response;
 
 import faceTag.controllers.UserController;
 
-@Path("/user/{userid}")
+@Path("/user")
 public class UserAction {
-
+	
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllUsers(@QueryParam("userID") String username,
+			@QueryParam("token") String token) {
+		return UserController.getAllUsers(username, token);
+	}
+	
 	// get a user's info
 	@GET
+	@Path("/{userid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUser(@PathParam("userid") String userid, @QueryParam("userID") String username,
 			@QueryParam("token") String token) {
@@ -20,7 +29,7 @@ public class UserAction {
 
 	// Get a list of a user's friends
 	@GET
-	@Path("/friend")
+	@Path("/{userid}/friend")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUsersFriends(@PathParam("userid") String userid, @QueryParam("userID") String username,
 			@QueryParam("token") String token) {
@@ -29,7 +38,7 @@ public class UserAction {
 
 	// Add a user as a friend
 	@POST
-	@Path("/friend")
+	@Path("/{userid}/friend")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response addUserAsFriend(@PathParam("userid") String userid, MultivaluedMap<String, String> multivaluedMap) {
@@ -49,7 +58,7 @@ public class UserAction {
 
 	// Remove a user as a friend
 	@POST
-	@Path("/friend/delete")
+	@Path("/{userid}/friend/delete")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response removeUserAsFriend(@PathParam("userid") String userid,
@@ -70,7 +79,7 @@ public class UserAction {
 
 	// Get a user's images (image data is not sent over)
 	@GET
-	@Path("/images")
+	@Path("/{userid}/images")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUsersImages(@PathParam("userid") String userid, @QueryParam("userID") String username,
 			@QueryParam("token") String token) {

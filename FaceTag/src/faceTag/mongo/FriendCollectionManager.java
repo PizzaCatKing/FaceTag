@@ -2,34 +2,32 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
-import org.bson.BSONObject;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoWriteException;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 
 import faceTag.entities.Friend;
 import faceTag.entities.User;
 
 public class FriendCollectionManager {
 
-	private static MongoCollection<Friend> getFriendCollection() {
+	private static DBCollection getFriendCollection() {
 		try {
 			MongoDBSingleton.getInstance();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		MongoCollection<Friend> coll = MongoDBSingleton.getDataBase().getCollection("Friend")
-				.withDocumentClass(Friend.class);
+		DBCollection coll = MongoDBSingleton.getDataBase().getCollection("Friend");
 		return coll;
 	}
 
 	// ID1 is us, ID2 is the friend
-	public static Friend addFriend(ObjectId userID, ObjectId friendID) throws MongoWriteException {
+	public static Friend addFriend(ObjectId userID, ObjectId friendID) throws MongoException {
 		// Check friend exists
 		User friend = UserCollectionManager.getUser(friendID);
 		if (friend == null) {
@@ -44,30 +42,24 @@ public class FriendCollectionManager {
 			newFriend = new Friend(friendID, userID);
 		}
 
-		MongoCollection<Friend> coll = getFriendCollection();
-		coll.insertOne(newFriend);
+		DBCollection coll = getFriendCollection();
+		coll.insert(newFriend);
 		return newFriend;
 	}
 
 	// ID1 is us, ID2 is the friend
-	public static Friend deleteFriend(ObjectId userID, ObjectId friendID) {
+	public static boolean deleteFriend(ObjectId userID, ObjectId friendID) {
 		BasicDBObject friendToDelete;
 		if (userID.equals(friendID)) {
-			return null;
+			return false;
 		} else if (userID.compareTo(friendID) < 0) {
 			friendToDelete = new BasicDBObject("userID1", userID).append("userID2", friendID);
 		} else {
 			friendToDelete = new BasicDBObject("userID1", friendID).append("userID2", userID);
 		}
 		
-		MongoCollection<Friend> coll = getFriendCollection();
-		BasicDBObject queryResult = coll.find(friendToDelete,BasicDBObject.class).first();
-		if(queryResult == null){
-			return null;
-		}
-		Friend result = new Friend();
-		result.putAll((BSONObject) queryResult);
-		return result;
+		DBCollection coll = getFriendCollection();
+		return coll.remove(friendToDelete).getN() > 0;
 	}
 
 	public static Boolean getFriendship(ObjectId id1, ObjectId id2) {
@@ -80,7 +72,7 @@ public class FriendCollectionManager {
 		} else {
 			query = new BasicDBObject("userID1", id2).append("userID2", id1);
 		}
-		MongoCollection<Friend> coll = getFriendCollection();
+		DBCollection coll = getFriendCollection();
 
 		return coll.count(query) == 1;
 	}
@@ -92,24 +84,26 @@ public class FriendCollectionManager {
 		// Our user is user 2
 		BasicDBObject clause2 = new BasicDBObject("userID2", userID);
 
-		MongoCollection<Friend> coll = getFriendCollection();
+		DBCollection coll = getFriendCollection();
 
-		FindIterable<BasicDBObject> search1 = coll.find(clause1, BasicDBObject.class);
-		FindIterable<BasicDBObject> search2 = coll.find(clause2, BasicDBObject.class);
+		DBCursor search1 = coll.find(clause1);
+		DBCursor search2 = coll.find(clause2);
 
 		BasicDBList results = new BasicDBList();
 
 		// We are friend 1 so we need to find all the friend 2s
-		for (BasicDBObject friend : search1) {
+		if (search1.hasNext()) {
+			DBObject obj = search1.next();
 			BasicDBObject friendProfile = new BasicDBObject();
-			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) friend.get("userID2")));
+			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) obj.get("userID2")));
 			results.add(friendProfile);
 		}
 
 		// We are friend 2 so we need to find all the friend 1s
-		for (BasicDBObject friend : search2) {
+		if (search2.hasNext()) {
+			DBObject obj = search2.next();
 			BasicDBObject friendProfile = new BasicDBObject();
-			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) friend.get("userID1")));
+			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) obj.get("userID1")));
 			results.add(friendProfile);
 		}
 

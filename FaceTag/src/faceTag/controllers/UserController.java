@@ -7,7 +7,8 @@ import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoWriteException;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import faceTag.entities.ErrorCode;
@@ -18,7 +19,37 @@ import faceTag.mongo.ImageCollectionManager;
 import faceTag.mongo.UserCollectionManager;
 
 public class UserController {
+	
+	public static Response getAllUsers(String _id, String token) {
+		if (!(StringTool.isValid(_id)  && StringTool.isValid(token)&& StringTool.isValidObjectID(_id))) {
+			BasicDBObject toReturn = new BasicDBObject();
+			toReturn.put("message", "Invalid Parameters");
+			toReturn.put("error", ErrorCode.ERROR_BAD_PARAMETERS);
+			
+			return Response
+					.status(Response.Status.BAD_REQUEST)
+					.entity(JSON.serialize(toReturn))
+					.type( MediaType.APPLICATION_JSON)
+	                .build();
+		}
+		Response tokenValidation = TokenController.validateToken(_id, token);
+		if (tokenValidation != null) {
+			return tokenValidation;
+		}
+		
+		Iterable<DBObject> userList = UserCollectionManager.getAllUsers();
+		BasicDBList results = new BasicDBList();
+		for (DBObject user : userList) {
+			BasicDBObject serializedUser = new BasicDBObject();
+			serializedUser.put("userID", ((ObjectId) (user).get("_id")).toHexString());
+			serializedUser.put("name", (String) (user).get("name"));
+			
+			results.add(serializedUser);
+		}
 
+		return Response.ok(JSON.serialize(results), MediaType.APPLICATION_JSON).build();
+	}
+	
 	public static Response getUser(String _id, String token, String userID) {
 		if (!(StringTool.isValid(_id) && StringTool.isValid(userID) && StringTool.isValid(token)&& StringTool.isValidObjectID(_id)&& StringTool.isValidObjectID(userID))) {
 			BasicDBObject toReturn = new BasicDBObject();
@@ -131,9 +162,9 @@ public class UserController {
 	                .build();
 		}
 
-		Friend deleted = FriendCollectionManager.deleteFriend(new ObjectId(_id), new ObjectId(userID));
+		boolean deleted = FriendCollectionManager.deleteFriend(new ObjectId(_id), new ObjectId(userID));
 
-		if (deleted == null) {
+		if (!deleted) {
 			// Return error message
 			BasicDBObject toReturn = new BasicDBObject();
 			toReturn.put("message", "You are not friends with this user.");
@@ -207,7 +238,7 @@ public class UserController {
 			return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
 		}
 		// You can't add someone you are already friends with
-		catch (MongoWriteException e) {
+		catch (MongoException e) {
 			// Return error message - you can't add this person as a friend
 			BasicDBObject toReturn = new BasicDBObject();
 			toReturn.put("message", "You are already friends with this person.");
@@ -254,10 +285,10 @@ public class UserController {
 	                .build();
 		}
 
-		Iterable<BasicDBObject> imageIterator = ImageCollectionManager.getImagesForUser(new ObjectId(userID));
+		Iterable<DBObject> imageIterator = ImageCollectionManager.getImagesForUser(new ObjectId(userID));
 		BasicDBList images = new BasicDBList();
-		for (BasicDBObject image : imageIterator) {
-			BasicDBObject imageToSerialize = new BasicDBObject(image);
+		for (DBObject image : imageIterator) {
+			BasicDBObject imageToSerialize = new BasicDBObject(image.toMap());
 			imageToSerialize.remove("_id");
 			imageToSerialize.put("imageID", ((ObjectId) image.get("_id")).toHexString());
 			imageToSerialize.put("ownerID", ((ObjectId) image.get("ownerID")).toHexString());

@@ -2,35 +2,33 @@ package faceTag.mongo;
 
 import java.net.UnknownHostException;
 
-import org.bson.BSONObject;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoWriteException;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.DBCollection;
+import com.mongodb.MongoException;
 
 import faceTag.entities.Account;
 
 public class AccountCollectionManager {
-	private static MongoCollection<Account> getAccountCollection() {
+	private static DBCollection getAccountCollection() {
 		try {
 			MongoDBSingleton.getInstance();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		MongoCollection<Account> coll = MongoDBSingleton.getDataBase().getCollection("Account")
-				.withDocumentClass(Account.class);
+		DBCollection coll = MongoDBSingleton.getDataBase().getCollection("Account");
+		coll.setObjectClass(Account.class);
 		return coll;
 	}
 
-	public static void addAccount(String username, String password, String name) throws MongoWriteException {
+	public static void addAccount(String username, String password, String name) throws MongoException {
 		// Create a User entry, then create the account.
 		ObjectId userID = UserCollectionManager.addUser(name);
 
 		Account newAccount = new Account(userID, username, password);
-		MongoCollection<Account> coll = getAccountCollection();
-
-		coll.insertOne(newAccount);
+		DBCollection coll = getAccountCollection();
+		coll.insert(newAccount);
 
 	}
 
@@ -38,15 +36,9 @@ public class AccountCollectionManager {
 		// Create a User entry, then create the account.
 		BasicDBObject query = new BasicDBObject("username", username).append("password", password);
 
-		MongoCollection<Account> coll = getAccountCollection();
-				
-		BasicDBObject queryResult = coll.find(query,BasicDBObject.class).first();
-		if(queryResult == null ){
-			return null;
-		}
-		Account result = new Account();
-		result.putAll((BSONObject)queryResult);
-		return result;
+		DBCollection coll = getAccountCollection();
+
+		return (Account) coll.findOne(query);
 		
 	}
 }

@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
 import org.bson.types.ObjectId;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoWriteException;
+import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import faceTag.entities.Account;
@@ -31,7 +31,7 @@ public class AccountController {
 		}
 		try {
 			AccountCollectionManager.addAccount(username, password, name);
-		} catch (MongoWriteException e) {
+		} catch (MongoException e) {
 			// If the username is already taken we reject the sign up.
 			BasicDBObject toReturn = new BasicDBObject();
 			toReturn.put("message", "That username is already in use.");
@@ -62,7 +62,7 @@ public class AccountController {
 		}
 		Account userAccount = AccountCollectionManager.checkPassword(username, password);
 		if (userAccount != null) {
-			// Login sucessful, send userid and token
+			// Login successful, send userID and token
 			Token token = TokenCollectionManager.addToken(userAccount.getUserID());
 			BasicDBObject toReturn = new BasicDBObject();
 			toReturn.putAll(token);

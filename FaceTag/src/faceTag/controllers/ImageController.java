@@ -23,7 +23,7 @@ import faceTag.mongo.ImageCollectionManager;
 
 public class ImageController {
 
-	final static String IMAGE_ROOT = "./images/";
+	final static String IMAGE_ROOT =  "C:\\Users\\Chris_2\\FaceTagData\\images\\";
 
 	// Add image
 	public static Response uploadImage(String _id, String token, String title, String base64Image) {
@@ -74,18 +74,27 @@ public class ImageController {
 		FileOutputStream imageOutFile;
 		try {
 			File file = new File(IMAGE_ROOT + newImage.getID().toHexString());
+			file.getParentFile().mkdirs();
 			if (!file.exists()) {
 				file.createNewFile();
 			}
+			System.out.println(file.getAbsolutePath());
 			imageOutFile = new FileOutputStream(file);
 
 			imageOutFile.write(imageDataBytes);
 
 			imageOutFile.close();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			ImageCollectionManager.deleteImage(newImage.getID());
+			
+			BasicDBObject toReturn = new BasicDBObject();
+			toReturn.put("message", "Error saving to server!");
+			toReturn.put("error", ErrorCode.ERROR_BAD_IMAGE_FORMAT);
+
+			return Response.status(Response.Status.BAD_REQUEST).entity(JSON.serialize(toReturn))
+					.type(MediaType.APPLICATION_JSON).build();
+			
 		}
 		BasicDBObject toReturn = new BasicDBObject();
 		toReturn.putAll(newImage);
@@ -179,13 +188,10 @@ public class ImageController {
 			file.delete();
 		}
 
-		image = ImageCollectionManager.deleteImage(new ObjectId(imageID));
+		boolean deleted = ImageCollectionManager.deleteImage(new ObjectId(imageID));
 
 		BasicDBObject toReturn = new BasicDBObject();
-		toReturn.putAll(image);
-		toReturn.remove("_id");
-		toReturn.put("imageID", image.getID().toHexString());
-		toReturn.put("ownerID", image.getOwnerID().toHexString());
+		toReturn.put("deleted", deleted);
 		return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
 	}
 }

@@ -3,6 +3,8 @@
     package="facetag.facetagmobileapp" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +35,18 @@
         <activity
             android:name=".UserViewActivity"
             android:label="@string/title_activity_user_view" >
+        </activity>
+        <activity
+            android:name=".ImageListActivity"
+            android:label="@string/title_activity_image_list" >
+        </activity>
+        <activity
+            android:name=".ImageSubmitFormActivity"
+            android:label="@string/title_activity_image_submit_form" >
+        </activity>
+        <activity
+            android:name=".ImageViewActivity"
+            android:label="@string/title_activity_image_view" >
         </activity>
     </application>
 

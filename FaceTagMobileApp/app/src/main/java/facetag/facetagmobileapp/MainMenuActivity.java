@@ -28,6 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import facetag.facetagmobileapp.entities.Image;
 import facetag.facetagmobileapp.entities.RestError;
 import facetag.facetagmobileapp.entities.Token;
 import facetag.facetagmobileapp.entities.User;
@@ -66,16 +67,21 @@ public class MainMenuActivity extends ActionBarActivity {
         myImagesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                new getImagesForUserTask().execute(token);
             }
         });
         newImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(), ImageSubmitFormActivity.class);
+                i.putExtra("token",token);
+                startActivity(i);
             }
         });
         searchForUsersButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                new getAllUsersTask().execute(token);
             }
         });
         logoutButton.setOnClickListener(new View.OnClickListener() {
@@ -241,6 +247,196 @@ public class MainMenuActivity extends ActionBarActivity {
                     e.printStackTrace();
                     Context context = getApplicationContext();
                     CharSequence text = "IO error while mapping users!";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                }
+                else {
+                    RestError error;
+                    try {
+                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
+                        Context context = getApplicationContext();
+                        CharSequence text = "Error: " + error.getMessage();
+                        int duration = Toast.LENGTH_SHORT;
+
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Context context = getApplicationContext();
+                        CharSequence text = "IO error while mapping error!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+
+                }
+            }
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Logging in ...", true);
+        }
+    }
+
+    private class getAllUsersTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
+
+        @Override
+        protected ResponseEntity<String> doInBackground(Token... params) {
+            if (params.length != 1) {
+                return null;
+            }
+
+            Token thisToken = params[0];
+
+
+            if (token == null) {
+                return null;
+            }
+
+            if (thisToken.getUserID().equals("") || thisToken.getToken().equals("")) {
+                return null;
+            }
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/user/")
+                    .queryParam("userID", thisToken.getUserID())
+                    .queryParam("token", thisToken.getToken());
+
+            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
+
+            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+        }
+
+        @Override
+        protected void onPostExecute(ResponseEntity<String> result) {
+            ringProgressDialog.dismiss();
+            if (result == null) {
+                //Invalid input! Tell the user to make better entries
+                Context context = getApplicationContext();
+                CharSequence text = "Error - unable to access token values";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            } else {
+                //We got a good return!
+                if (result.getStatusCode() == HttpStatus.OK) try {
+                    ArrayList<User> friends = ObjectMapperSingleton.getObjectMapper()
+                            .readValue(result.getBody(), new TypeReference<ArrayList<User>>() {
+                            });
+
+                    // We have a valid token - go to main menu
+                    Intent i = new Intent(getApplicationContext(), UserListActivity.class);
+                    i.putParcelableArrayListExtra("users", friends);
+                    i.putExtra("token", token);
+                    startActivity(i);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Context context = getApplicationContext();
+                    CharSequence text = "IO error while mapping users!";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                }
+                else {
+                    RestError error;
+                    try {
+                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
+                        Context context = getApplicationContext();
+                        CharSequence text = "Error: " + error.getMessage();
+                        int duration = Toast.LENGTH_SHORT;
+
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Context context = getApplicationContext();
+                        CharSequence text = "IO error while mapping error!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+
+                }
+            }
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Logging in ...", true);
+        }
+    }
+
+    private class getImagesForUserTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
+
+        @Override
+        protected ResponseEntity<String> doInBackground(Token... params) {
+            if (params.length != 1) {
+                return null;
+            }
+
+            Token thisToken = params[0];
+
+
+            if (token == null) {
+                return null;
+            }
+
+            if (thisToken.getUserID().equals("") || thisToken.getToken().equals("")) {
+                return null;
+            }
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/user/"+thisToken.getUserID()+"/images")
+                    .queryParam("userID", thisToken.getUserID())
+                    .queryParam("token", thisToken.getToken());
+
+            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
+
+            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+        }
+
+        @Override
+        protected void onPostExecute(ResponseEntity<String> result) {
+            ringProgressDialog.dismiss();
+            if (result == null) {
+                //Invalid input! Tell the user to make better entries
+                Context context = getApplicationContext();
+                CharSequence text = "Error - unable to access token values";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            } else {
+                //We got a good return!
+                if (result.getStatusCode() == HttpStatus.OK) try {
+                    ArrayList<Image> images = ObjectMapperSingleton.getObjectMapper()
+                            .readValue(result.getBody(), new TypeReference<ArrayList<Image>>() {
+                            });
+                    System.out.println(result.getBody());
+                    // We have a valid token - go to main menu
+                    Intent i = new Intent(getApplicationContext(), ImageListActivity.class);
+                    i.putParcelableArrayListExtra("images", images);
+                    i.putExtra("token", token);
+                    startActivity(i);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Context context = getApplicationContext();
+                    CharSequence text = "IO error while mapping images!";
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(context, text, duration);
                     toast.show();
