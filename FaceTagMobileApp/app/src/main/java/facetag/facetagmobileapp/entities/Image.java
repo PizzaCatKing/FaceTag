@@ -3,9 +3,7 @@ package facetag.facetagmobileapp.entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by Chris_2 on 2015-07-25.
- */
+
 public class Image implements Parcelable {
     String imageID;
     String ownerID;
@@ -74,5 +72,9 @@ public class Image implements Parcelable {
         ownerID = in.readString();
         title = in.readString();
         base64Image = in.readString();
+    }
+    @Override
+    public String toString() {
+        return title;
     }
 }

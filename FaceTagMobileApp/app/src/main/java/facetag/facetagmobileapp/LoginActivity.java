@@ -4,8 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,15 +13,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -32,6 +26,7 @@ import facetag.facetagmobileapp.entities.Token;
 import facetag.facetagmobileapp.singletons.ObjectMapperSingleton;
 
 
+@SuppressWarnings("deprecation")
 public class LoginActivity extends ActionBarActivity {
     ProgressDialog ringProgressDialog;
     Button loginButton;
@@ -110,9 +105,8 @@ public class LoginActivity extends ActionBarActivity {
                     .queryParam("password", password);
 
             restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
-            ResponseEntity<String> result = restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
 
-            return result;
+            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
         }
 
         @Override

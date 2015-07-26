@@ -3,15 +3,14 @@ package facetag.facetagmobileapp;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,8 +19,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,16 +30,13 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import facetag.facetagmobileapp.entities.RestError;
 import facetag.facetagmobileapp.entities.Token;
-import facetag.facetagmobileapp.entities.User;
+import facetag.facetagmobileapp.singletons.ImageTool;
 import facetag.facetagmobileapp.singletons.ObjectMapperSingleton;
 
 public class ImageSubmitFormActivity extends AppCompatActivity {
@@ -99,8 +93,8 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 try {
                     Uri chosenImageUri = data.getData();
-                    Bitmap originalImage = resize(MediaStore.Images.Media.getBitmap(this.getContentResolver(), chosenImageUri), 2000, 2000);
-                    ExifInterface ei = new ExifInterface(getRealPathFromUri(this.getApplicationContext(), chosenImageUri));
+                    Bitmap originalImage = ImageTool.resize(MediaStore.Images.Media.getBitmap(this.getContentResolver(), chosenImageUri), 2000, 2000);
+                    ExifInterface ei = new ExifInterface(ImageTool.getRealPathFromUri(this.getApplicationContext(), chosenImageUri));
 
                     int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
 
@@ -123,7 +117,7 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
                             image = originalImage;
                     }
 
-                    imageView.setImageBitmap(resize(image, imageView.getWidth(), imageView.getHeight()));
+                    imageView.setImageBitmap(ImageTool.resize(image, imageView.getWidth(), imageView.getHeight()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     image = null;
@@ -131,43 +125,6 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
             }
         }
     }
-
-    public String getRealPathFromUri(Context context, Uri contentUri) {
-        Cursor cursor = null;
-        try {
-            String[] proj = {MediaStore.Images.Media.DATA};
-            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-    }
-
-    private Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
-        if (maxHeight > 0 && maxWidth > 0) {
-            int width = image.getWidth();
-            int height = image.getHeight();
-            float ratioBitmap = (float) width / (float) height;
-            float ratioMax = (float) maxWidth / (float) maxHeight;
-
-            int finalWidth = maxWidth;
-            int finalHeight = maxHeight;
-            if (ratioMax > 1) {
-                finalWidth = (int) ((float) maxHeight * ratioBitmap);
-            } else {
-                finalHeight = (int) ((float) maxWidth / ratioBitmap);
-            }
-            image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
-            return image;
-        } else {
-            return image;
-        }
-    }
-
 
     private class SubmitImageTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
         Bitmap imageToSubmit;

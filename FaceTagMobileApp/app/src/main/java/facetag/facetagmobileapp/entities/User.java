@@ -3,9 +3,6 @@ package facetag.facetagmobileapp.entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-/**
- * Created by chris-ubuntu on 21/07/15.
- */
 public class User implements Parcelable {
     private String userID;
     private String name;

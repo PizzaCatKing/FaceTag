@@ -11,11 +11,7 @@ import java.util.ArrayList;
 
 import facetag.facetagmobileapp.R;
 import facetag.facetagmobileapp.entities.Image;
-import facetag.facetagmobileapp.entities.User;
 
-/**
- * Created by Chris_2 on 2015-07-25.
- */
 public class ImageAdapter  extends ArrayAdapter<Image> {
     public ImageAdapter(Context context, ArrayList<Image> images) {
         super(context, 0, images);
