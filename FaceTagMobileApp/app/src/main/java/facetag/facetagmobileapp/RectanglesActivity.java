@@ -1,16 +1,47 @@
 package facetag.facetagmobileapp;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import facetag.facetagmobileapp.entities.Image;
+import facetag.facetagmobileapp.entities.Token;
 
 public class RectanglesActivity extends AppCompatActivity {
+    ProgressDialog ringProgressDialog;
+    Token token;
+    Bitmap imageBitmap;
+    Image image;
+
+    TextView titleTextView;
+    ImageView imageView;
+    Button submitButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rectangles);
+
+        Intent i = getIntent();
+        token = i.getParcelableExtra("token");
+        image = i.getParcelableExtra("image");
+        imageBitmap = i.getParcelableExtra("imageBitmap");
+
+        titleTextView = (TextView) findViewById(R.id.rectanglesTitleTextView);
+        imageView = (ImageView) findViewById(R.id.rectanglesImageView);
+        submitButton = (Button) findViewById(R.id.rectanglesSubmitButton);
+
+        titleTextView.setText(image.getTitle());
+
+
+
     }
 
     @Override
