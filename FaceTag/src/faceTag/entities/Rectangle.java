@@ -11,12 +11,15 @@ import org.bson.types.ObjectId;
 import com.mongodb.DBObject;
 
 public class Rectangle implements DBObject {
-	private ObjectId imageID; // The IDs together are unique - a person can only be in an image once
+	private ObjectId _id;
+	private ObjectId imageID;
 	private ObjectId userID;
 	private int x1;
 	private int y1; 
 	private int x2;
 	private int y2;
+	
+	public Rectangle(){}
 	
 	public Rectangle(int _x1,int _y1,int _x2,int _y2){
 		x1= _x1;
@@ -27,7 +30,8 @@ public class Rectangle implements DBObject {
 	
 	@Override
 	public boolean containsField(String arg0) {
-		return (arg0.equals("imageID") 
+		return (arg0.equals("_id") 
+				|| arg0.equals("imageID")
 				|| arg0.equals("userID")
 				|| arg0.equals("x1")
 				|| arg0.equals("y1")
@@ -42,7 +46,8 @@ public class Rectangle implements DBObject {
 
 	@Override
 	public Object get(String arg0) {
-		if (arg0.equals("imageID")) return imageID;
+		if (arg0.equals("_id")) return _id;
+		else if (arg0.equals("imageID")) return imageID;
 		else if (arg0.equals("userID")) return userID;
 		else if (arg0.equals("x1")) return x1;
 		else if (arg0.equals("y1")) return y1;
@@ -54,6 +59,7 @@ public class Rectangle implements DBObject {
 	@Override
 	public Set<String> keySet() {
 		Set<String> set = new HashSet<String>();
+		set.add("_id");
 		set.add("imageID");
 		set.add("userID");
 		set.add("x1");
@@ -65,6 +71,10 @@ public class Rectangle implements DBObject {
 
 	@Override
 	public Object put(String arg0, Object arg1) {
+		if (arg0.equals("_id")){
+			_id = (ObjectId) arg1;
+			return arg1;
+		}
 		if (arg0.equals("imageID")){
 			imageID = (ObjectId) arg1;
 			return arg1;
@@ -102,6 +112,8 @@ public class Rectangle implements DBObject {
 	public void putAll(@SuppressWarnings("rawtypes") Map arg0) {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>) arg0;
+		if (map.containsKey("_id"))
+			this._id = (ObjectId) map.get("_id");
 		if (map.containsKey("imageID"))
 			this.imageID = (ObjectId) map.get("imageID");
 		if (map.containsKey("userID"))
@@ -125,6 +137,7 @@ public class Rectangle implements DBObject {
 	@Override
 	public Map toMap() {
 		Map<String, Object> map = new HashMap<String, Object>();
+		if (_id != null) map.put("_id", _id);
 		if (imageID != null) map.put("imageID", imageID);
 		if (userID != null) map.put("userID", userID);
 		map.put("x1", x1);

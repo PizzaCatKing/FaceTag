@@ -10,6 +10,7 @@ import com.mongodb.MongoClient;
 import faceTag.entities.Account;
 import faceTag.entities.Friend;
 import faceTag.entities.Image;
+import faceTag.entities.Rectangle;
 import faceTag.entities.Token;
 import faceTag.entities.User;
 
@@ -50,6 +51,15 @@ public class MongoDBSingleton {
 		DBCollection  friendColl = db.getCollection("Friend");
 		friendColl.createIndex(new BasicDBObject("userID1",1).append("userID2",1), new BasicDBObject("unique",true));
 		friendColl.setObjectClass(Friend.class);
+		
+		DBCollection  rectColl = db.getCollection("Rectangle");
+		rectColl.createIndex(new BasicDBObject("x1",1));
+		rectColl.createIndex(new BasicDBObject("y1",1));
+		rectColl.createIndex(new BasicDBObject("x2",1));
+		rectColl.createIndex(new BasicDBObject("y2",1));
+		rectColl.createIndex(new BasicDBObject("userID",1));
+		rectColl.createIndex(new BasicDBObject("imageID",1));
+		rectColl.setObjectClass(Rectangle.class);
 	}
 
 	public static MongoDBSingleton getInstance() throws UnknownHostException {

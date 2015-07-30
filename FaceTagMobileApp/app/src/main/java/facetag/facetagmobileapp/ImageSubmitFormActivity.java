@@ -32,8 +32,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
+import facetag.facetagmobileapp.entities.Image;
 import facetag.facetagmobileapp.entities.RestError;
 import facetag.facetagmobileapp.entities.Token;
 import facetag.facetagmobileapp.singletons.ImageTool;
@@ -94,9 +97,14 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
                 try {
                     Uri chosenImageUri = data.getData();
                     Bitmap originalImage = ImageTool.resize(MediaStore.Images.Media.getBitmap(this.getContentResolver(), chosenImageUri), 2000, 2000);
-                    ExifInterface ei = new ExifInterface(ImageTool.getRealPathFromUri(this.getApplicationContext(), chosenImageUri));
+                    int orientation =ExifInterface.ORIENTATION_NORMAL;
+                    try {
+                        ExifInterface ei = new ExifInterface(ImageTool.getRealPathFromUri(this.getApplicationContext(), chosenImageUri));
+                       orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                    }
+                    catch (Exception e){
+                    }
 
-                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
 
                     Matrix matrix = new Matrix();
                     switch (orientation) {
@@ -187,7 +195,8 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
             } else if (result.getStatusCode() == HttpStatus.OK) {
-                System.out.println(result.getStatusCode());
+                try {
+                Image resultImage = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), Image.class);
                 //We got a good return!
                 Context context = getApplicationContext();
                 CharSequence text = "Image posted!";
@@ -196,8 +205,31 @@ public class ImageSubmitFormActivity extends AppCompatActivity {
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
 
-                //Image is posted so return to menu
+                    //save image to storage, get uri and send it to next activity
+                File imageCache = File.createTempFile("FaceTagTempImage"+resultImage.getImageID(), null, getExternalCacheDir());
+                FileOutputStream filecon = new FileOutputStream(imageCache);
+                image.compress(Bitmap.CompressFormat.JPEG, 100, filecon);
+                filecon.flush();
+                filecon.close();
+
+
+                    //Image is posted so go to rect generator
+                Intent i = new Intent(getApplicationContext(), RectanglesActivity.class);
+                i.putExtra("token", token);
+                i.putExtra("image", resultImage);
+                i.putExtra("imageBitmapLocation", imageCache.toURI().toString());
+                i.putExtra("generate", true);
+                startActivity(i);
                 finish();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Context context = getApplicationContext();
+                    CharSequence text = "IO error while mapping image!";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                    finish();
+                }
             } else {
                 RestError error;
                 try {

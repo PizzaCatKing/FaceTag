@@ -32,11 +32,11 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_detec
 	Mat image = imread(filesLocation + "images\\" + imageID, CV_LOAD_IMAGE_GRAYSCALE);
 	if( !face_cascade.load( filesLocation + face_cascade_name ) ){ printf("--(!)Error loading face cascade\n"); cin.ignore(); return NULL; };
 
-	std::vector<Rect> faces;
+	vector<Rect> faces;
 	equalizeHist( image, image );
 
 	//-- Detect faces
-	face_cascade.detectMultiScale( image, faces, 1.1, 2, 0|CASCADE_SCALE_IMAGE, Size(30, 30) );
+	face_cascade.detectMultiScale( image, faces, 1.1, 2, 0, Size(100, 100) );
 	cout << "Found " << faces.size() << " faces!" << endl;
 
 	jclass rectClass = env->FindClass("faceTag/entities/Rectangle");

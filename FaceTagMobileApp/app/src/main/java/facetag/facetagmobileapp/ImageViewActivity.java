@@ -27,11 +27,12 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import facetag.facetagmobileapp.entities.Image;
-import facetag.facetagmobileapp.entities.Rectangle;
 import facetag.facetagmobileapp.entities.RestError;
 import facetag.facetagmobileapp.entities.Token;
 import facetag.facetagmobileapp.singletons.ImageTool;
@@ -164,123 +165,6 @@ public class ImageViewActivity extends AppCompatActivity {
         }
     }
 
-    private class GetRectsTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
-        Image targetImage;
-        public GetRectsTask(Image targetImage){
-            this.targetImage = targetImage;
-        }
-        @Override
-        protected ResponseEntity<String> doInBackground(Token... params) {
-            if (params.length < 1) {
-                return null;
-            }
-            Token thisToken = params[0];
-            if (token == null) {
-                return null;
-            }
-
-            if(thisToken.getUserID().equals("") || thisToken.getToken().equals("")){
-                return null;
-            }
-
-            RestTemplate restTemplate = new RestTemplate();
-
-            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/recognize/"+targetImage.getImageID() + "/rectangles")
-                    .queryParam("userID", thisToken.getUserID())
-                    .queryParam("token", thisToken.getToken());
-
-            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
-
-            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
-        }
-
-        @Override
-        protected void onPostExecute(ResponseEntity<String> result) {
-
-            ringProgressDialog.dismiss();
-            if (result == null) {
-                //Invalid input! Tell the user to make better entries
-                Context context = getApplicationContext();
-                CharSequence text = "Invalid token";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-                finish();
-            }
-            else if(!result.getHeaders().getContentType().equals(MediaType.APPLICATION_JSON)){
-                Context context = getApplicationContext();
-                CharSequence text = "Error: Server returned status code " + result.getStatusCode().toString();
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-                finish();
-            }
-            else {
-                if (result.getStatusCode() == HttpStatus.OK) {
-
-                    try {
-                        ArrayList<Rectangle> rectangles = ObjectMapperSingleton.getObjectMapper()
-                                .readValue(result.getBody(), new TypeReference<ArrayList<Rectangle>>() {
-                                });
-
-
-                        Paint paint = new Paint();
-                        paint.setColor(Color.GREEN);
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(2);
-
-                        for(Rectangle rect : rectangles){
-                            canvas.drawRect(rect.getX1(), rect.getY1(), rect.getX2(), rect.getY2(), paint);
-                        }
-                        imageView.setImageBitmap(ImageTool.resize(rectBitmap, imageView.getWidth(), imageView.getHeight()));
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Context context = getApplicationContext();
-                        CharSequence text = "IO error while mapping token!";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                        finish();
-                    }
-
-
-                } else {
-                    RestError error;
-                    try {
-                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
-                        Context context = getApplicationContext();
-                        CharSequence text = "Error: " + error.getMessage();
-                        int duration = Toast.LENGTH_SHORT;
-
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                        finish();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Context context = getApplicationContext();
-                        CharSequence text = "IO error while mapping error!";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                        finish();
-                    }
-
-                }
-            }
-
-        }
-        @Override
-        protected void onPreExecute() {
-
-            ringProgressDialog = ProgressDialog.show(ImageViewActivity.this, "Please wait ...", "Logging in ...", true);
-        }
-    }
-
     private class ConvertImageTask extends AsyncTask<String, Void, Bitmap> {
 
         @Override
@@ -295,6 +179,7 @@ public class ImageViewActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
+            image.setBase64Image("");
             imageBitmap = bitmap;
             rectBitmap = imageBitmap.copy(imageBitmap.getConfig(), true);
             canvas = new Canvas(rectBitmap);
@@ -317,7 +202,29 @@ public class ImageViewActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            new GetRectsTask(image).execute(token);
+            //save image to storage, get uri and send it to next activity
+
+            try {
+                File imageCache = File.createTempFile("FaceTagTempImage"+image.getImageID(), null, getExternalCacheDir());
+                FileOutputStream filecon = null;
+                filecon = new FileOutputStream(imageCache);
+                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, filecon);
+                filecon.flush();
+                filecon.close();
+                //Image is posted so go to rect generator
+                Intent i = new Intent(getApplicationContext(), RectanglesActivity.class);
+
+                i.putExtra("token", token);
+                i.putExtra("image", image);
+                i.putExtra("imageBitmapLocation", imageCache.toURI().toString());
+                startActivity(i);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
             return true;
         }
 

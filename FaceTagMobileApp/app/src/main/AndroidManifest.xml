@@ -52,6 +52,10 @@
             android:name=".RectanglesActivity"
             android:label="@string/title_activity_rectangles" >
         </activity>
+        <activity
+            android:name=".FriendPickerActivity"
+            android:label="@string/title_activity_friend_picker" >
+        </activity>
     </application>
 
 </manifest>

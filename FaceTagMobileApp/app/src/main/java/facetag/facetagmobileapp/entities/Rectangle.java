@@ -7,8 +7,9 @@ import android.os.Parcelable;
  * Created by Chris_2 on 2015-07-29.
  */
 public class Rectangle implements Parcelable {
+    private String rectID;
     private String imageID;
-    private String ownerID;
+    private String userID;
     private int x1;
     private int x2;
     private int y1;
@@ -16,6 +17,28 @@ public class Rectangle implements Parcelable {
 
 
     public Rectangle() {}
+    public Rectangle(Rectangle rectangle) {
+        rectID = rectangle.getRectID();
+        imageID = rectangle.getImageID();
+        userID = rectangle.getUserID();
+
+        x1 = rectangle.getX1();
+        y1 = rectangle.getY1();
+        x2 = rectangle.getX2();
+        y2 = rectangle.getY2();
+    }
+
+    public String getRectID() {
+        return rectID;
+    }
+
+    public boolean isInside(float x, float y){
+        return (x > x1 && x < x2 && y > y1 && y < y2);
+    }
+
+    public void setRectID(String rectID) {
+        this.rectID = rectID;
+    }
 
     public String getImageID() {
         return imageID;
@@ -25,12 +48,12 @@ public class Rectangle implements Parcelable {
         this.imageID = imageID;
     }
 
-    public String getOwnerID() {
-        return ownerID;
+    public String getUserID() {
+        return userID;
     }
 
-    public void setOwnerID(String ownerID) {
-        this.ownerID = ownerID;
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
     public int getX1() {
@@ -72,8 +95,9 @@ public class Rectangle implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(rectID);
         dest.writeString(imageID);
-        dest.writeString(ownerID);
+        dest.writeString(userID);
         dest.writeInt(x1);
         dest.writeInt(x2);
         dest.writeInt(y1);
@@ -93,8 +117,9 @@ public class Rectangle implements Parcelable {
     };
 
     private Rectangle(Parcel in) {
+        rectID = in.readString();
         imageID = in.readString();
-        ownerID = in.readString();
+        userID = in.readString();
         x1 = in.readInt();
         x2 = in.readInt();
         y1 = in.readInt();
