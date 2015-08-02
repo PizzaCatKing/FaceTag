@@ -10,10 +10,26 @@ extern "C" {
 /*
  * Class:     faceTag_recognizer_RecognizerInterface
  * Method:    detectForRectangles
- * Signature: (Ljava/lang/String;Ljava/lang/String;)[LfaceTag/entities/Rectangle;
+ * Signature: (Ljava/lang/String;)[LfaceTag/entities/Rectangle;
  */
 JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_detectForRectangles
-  (JNIEnv *, jobject, jstring, jstring);
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     faceTag_recognizer_RecognizerInterface
+ * Method:    recgonizeRectangles
+ * Signature: ([Ljava/lang/String;[LfaceTag/entities/Rectangle;)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgonizeRectangles
+  (JNIEnv *, jobject, jobjectArray, jobjectArray);
+
+/*
+ * Class:     faceTag_recognizer_RecognizerInterface
+ * Method:    updateRecognizer
+ * Signature: ([LfaceTag/entities/Rectangle;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRecognizer
+  (JNIEnv *, jobject, jobjectArray);
 
 #ifdef __cplusplus
 }

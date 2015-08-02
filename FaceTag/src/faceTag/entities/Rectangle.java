@@ -14,10 +14,10 @@ public class Rectangle implements DBObject {
 	private ObjectId _id;
 	private ObjectId imageID;
 	private ObjectId userID;
-	private int x1;
-	private int y1; 
-	private int x2;
-	private int y2;
+	public int x1;
+	public int y1; 
+	public int x2;
+	public int y2;
 	
 	public Rectangle(){}
 	
@@ -28,6 +28,23 @@ public class Rectangle implements DBObject {
 		y2= _y2;
 	}
 	
+	public String getImageIDString(){
+		System.out.println("T1");
+		System.out.println(imageID.toHexString());
+		return imageID.toHexString();
+	}
+	
+	public String getUserIDString(){
+		System.out.println("T2");
+		
+		if(userID == null){
+			System.out.println("(NULL)");
+			return "";
+		}
+		System.out.println("(" + userID.toHexString() +")");
+		return userID.toHexString();
+	}
+
 	@Override
 	public boolean containsField(String arg0) {
 		return (arg0.equals("_id") 

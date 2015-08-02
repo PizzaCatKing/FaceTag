@@ -7,7 +7,7 @@ public class User implements Parcelable {
     private String userID;
     private String name;
 
-    public User() {}
+    public User() {name = "EMPTY"; userID = "";}
 
     public String getUserID() {
         return userID;

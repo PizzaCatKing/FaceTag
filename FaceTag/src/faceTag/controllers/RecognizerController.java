@@ -1,5 +1,7 @@
 package faceTag.controllers;
 
+import java.util.ArrayList;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -13,8 +15,10 @@ import com.mongodb.util.JSON;
 import faceTag.entities.ErrorCode;
 import faceTag.entities.Image;
 import faceTag.entities.Rectangle;
+import faceTag.mongo.FriendCollectionManager;
 import faceTag.mongo.ImageCollectionManager;
 import faceTag.mongo.RectangleCollectionManager;
+import faceTag.mongo.UserCollectionManager;
 import faceTag.recognizer.RecognizerInterface;
 
 public class RecognizerController {
@@ -100,10 +104,11 @@ public static Response setRectangles(String _id, String token, String imageID, S
 		
 		//change the JSON rectangles to an array of rectangles
 		BasicDBList rectangles = (BasicDBList) JSON.parse(rectString);
+		ArrayList<Rectangle> rectArray = new ArrayList<>();
 		for(Object obj : rectangles){
 			((DBObject) obj).put("_id", new ObjectId((String)((DBObject) obj).get("rectID")));
 			((DBObject) obj).put("imageID", new ObjectId((String)((DBObject) obj).get("imageID")));
-			if(((DBObject) obj).get("userID") != null){
+			if(StringTool.isValid((String) ((DBObject) obj).get("userID"))){
 				((DBObject) obj).put("userID", new ObjectId((String)((DBObject) obj).get("userID")));
 			}
 			else{
@@ -112,9 +117,16 @@ public static Response setRectangles(String _id, String token, String imageID, S
 			
 			
 			((DBObject) obj).removeField("rectID");
+			Rectangle newRect = new Rectangle();
+			newRect.putAll((DBObject) obj);
+			rectArray.add(newRect);
 		}
+		
 		rectangles = RectangleCollectionManager.updateRectangles(rectangles);
 		
+
+		System.out.println(" -- " + JSON.serialize(rectangles));
+		RecognizerInterface.getInstance().updateRecognizer(rectArray.toArray(new Rectangle[rectArray.size()]));
 		for(Object obj : rectangles){
 			((DBObject) obj).put("rectID",((ObjectId)((DBObject) obj).get("_id")).toHexString());
 			((DBObject) obj).put("imageID", ((ObjectId)((DBObject) obj).get("imageID")).toHexString());
@@ -169,15 +181,45 @@ public static Response setRectangles(String _id, String token, String imageID, S
 					.type(MediaType.APPLICATION_JSON).build();
 		}
 		
-		Rectangle[] recognized = RecognizerInterface.getInstance().detectForRectangles(faceTag.entities.Globals.FILES_ROOT, image.getID().toHexString());
-		for(Rectangle rect : recognized){
+		Rectangle[] detected = RecognizerInterface.getInstance().detectForRectangles(image.getID().toHexString());
+		
+		//Get the userIDs of this user's friends
+		
+		BasicDBList friendList = FriendCollectionManager.getFriendsForUser(new ObjectId(_id));
+		friendList.add(UserCollectionManager.getUser(new ObjectId(_id)));
+
+		String[] userIDArray = new String[friendList.size()];
+		for (int i=0; i< friendList.size(); i++) {
+			userIDArray[i] = ((ObjectId) ((DBObject)friendList.get(i)).get("_id")).toHexString();
+			System.out.println("Got " + userIDArray[i]);
+		}
+
+		for(Rectangle rect : detected){
 			rect.put("imageID", image.getID());
 		}
+		
+		//Recognize the people in the rectangles
+		String[] recognized = RecognizerInterface.getInstance().recgonizeRectangles(userIDArray, detected);
+		
+		
+		for(int i =0; i< detected.length; i++){
+			System.out.println("Got " + recognized[i]);
+			if(!recognized[i].equals("")){
+				detected[i].put("userID", new ObjectId(recognized[i]));
+			}
+			else{
+				detected[i].put("userID", null);
+			}
+			
+		}
+		
 		RectangleCollectionManager.deleteForImage(image.getID());
 		Rectangle[] result = null;
-		if(recognized.length > 0){
-			result = RectangleCollectionManager.addRectangles(recognized);
+		if(detected.length > 0){
+			result = RectangleCollectionManager.addRectangles(detected);
 		}
+		
+		
 		BasicDBList rectangles = new BasicDBList();
 		for (Rectangle rect : result) {
 			BasicDBObject rectangleToSerialize = new BasicDBObject(rect.toMap());
@@ -192,6 +234,7 @@ public static Response setRectangles(String _id, String token, String imageID, S
 			}
 			rectangles.add(rectangleToSerialize);
 		}
+		System.out.println("Response: " + JSON.serialize(rectangles));
 		return Response.ok(JSON.serialize(rectangles), MediaType.APPLICATION_JSON).build();
 	}
 }

@@ -87,14 +87,12 @@ public class RectanglesActivity extends AppCompatActivity {
             finish();
         }
 
-        rectBitmap = imageBitmap.copy(imageBitmap.getConfig(), true);
-        canvas = new Canvas(rectBitmap);
 
         titleTextView = (TextView) findViewById(R.id.rectanglesTitleTextView);
         imageView = (ImageView) findViewById(R.id.rectanglesImageView);
         submitButton = (Button) findViewById(R.id.rectanglesSubmitButton);
 
-        imageView.setImageBitmap(rectBitmap);
+
         titleTextView.setText(image.getTitle());
         if(!token.getUserID().equals(image.getOwnerID())){
             submitButton.setVisibility(View.INVISIBLE);
@@ -139,10 +137,13 @@ public class RectanglesActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 User user = data.getParcelableExtra("user");
                 int rectLoc =  data.getIntExtra("rectLoc", -1);
-
+                System.out.println("RET");
                 Rectangle tempRect = rectangles.get(rectLoc);
                 tempRect.setUserID(user.getUserID());
-                rectangles.set(rectLoc, tempRect);
+                if(!rectangles.get(rectLoc).getUserID().equals(user.getUserID())) {
+                    rectangles.set(rectLoc, tempRect);
+
+                }
                 refreshImage();
             }
         }
@@ -630,6 +631,8 @@ public class RectanglesActivity extends AppCompatActivity {
                 if (result.getStatusCode() == HttpStatus.OK) try {
                     User us = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), User.class);
                     friends.add(us);
+                    friends.add(new User());
+
                     if(generateRectangles){
                         new GenerateRectsTask(image).execute(token);
                     }else{
@@ -678,6 +681,8 @@ public class RectanglesActivity extends AppCompatActivity {
     }
 
     private void refreshImage(){
+        rectBitmap = imageBitmap.copy(imageBitmap.getConfig(), true);
+        canvas = new Canvas(rectBitmap);
         Paint paint = new Paint();
         paint.setColor(Color.GREEN);
         paint.setStyle(Paint.Style.STROKE);
@@ -690,9 +695,13 @@ public class RectanglesActivity extends AppCompatActivity {
 
         for (Rectangle rect : rectangles) {
             canvas.drawRect(rect.getX1(), rect.getY1(), rect.getX2(), rect.getY2(), paint);
-            canvas.drawText(getFriendNameWithID(rect.getUserID()), rect.getX1() +10, rect.getY1() + imageView.getHeight()/10, textPaint);
+            if(!rect.getUserID().equals("")) {
+                canvas.drawText(getFriendNameWithID(rect.getUserID()), rect.getX1() + 10, rect.getY1() + imageView.getHeight() / 10, textPaint);
+            }
         }
+
         imageView.setImageBitmap(ImageTool.resize(rectBitmap, imageView.getWidth(), imageView.getHeight()));
+        imageView.invalidate();
     }
 
     private String getFriendNameWithID(String id) {

@@ -18,6 +18,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.util.JSON;
 
 import faceTag.entities.ErrorCode;
+import faceTag.entities.Globals;
 import faceTag.entities.Image;
 import faceTag.mongo.ImageCollectionManager;
 
@@ -71,7 +72,7 @@ public class ImageController {
 		// Save byte array into file
 		FileOutputStream imageOutFile;
 		try {
-			File file = new File(faceTag.entities.Globals.IMAGE_ROOT + newImage.getID().toHexString());
+			File file = new File(Globals.FILES_ROOT + Globals.IMAGE_ROOT_EXTENTION + newImage.getID().toHexString());
 			file.getParentFile().mkdirs();
 			if (!file.exists()) {
 				file.createNewFile();
@@ -131,8 +132,8 @@ public class ImageController {
 		String imageDataString = null;
 		// Encode byte array to string
 		try {
-			File file = new File(faceTag.entities.Globals.IMAGE_ROOT + image.getID().toHexString());
-			FileInputStream imageInFile = new FileInputStream(faceTag.entities.Globals.IMAGE_ROOT + image.getID().toHexString());
+			File file = new File(Globals.FILES_ROOT + Globals.IMAGE_ROOT_EXTENTION + image.getID().toHexString());
+			FileInputStream imageInFile = new FileInputStream(Globals.FILES_ROOT + Globals.IMAGE_ROOT_EXTENTION + image.getID().toHexString());
 			byte imageData[] = new byte[(int) file.length()];
 			imageInFile.read(imageData);
 
@@ -181,7 +182,7 @@ public class ImageController {
 					.type(MediaType.APPLICATION_JSON).build();
 		}
 
-		File file = new File(faceTag.entities.Globals.IMAGE_ROOT + image.getID().toHexString());
+		File file = new File(Globals.FILES_ROOT + Globals.IMAGE_ROOT_EXTENTION + image.getID().toHexString());
 		if (file.exists()) {
 			file.delete();
 		}
