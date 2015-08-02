@@ -214,25 +214,27 @@ public static Response setRectangles(String _id, String token, String imageID, S
 		}
 		
 		RectangleCollectionManager.deleteForImage(image.getID());
+		BasicDBList rectangles = new BasicDBList();
 		Rectangle[] result = null;
 		if(detected.length > 0){
 			result = RectangleCollectionManager.addRectangles(detected);
-		}
 		
 		
-		BasicDBList rectangles = new BasicDBList();
-		for (Rectangle rect : result) {
-			BasicDBObject rectangleToSerialize = new BasicDBObject(rect.toMap());
-			rectangleToSerialize.remove("_id");
-			rectangleToSerialize.put("rectID", ((ObjectId)rect.get("_id")).toHexString());
-			rectangleToSerialize.put("imageID",((ObjectId)rect.get("imageID")).toHexString());
-			if(rect.get("userID") != null){
-				rectangleToSerialize.put("userID", ((ObjectId)rect.get("userID")).toHexString());
+		
+			
+			for (Rectangle rect : result) {
+				BasicDBObject rectangleToSerialize = new BasicDBObject(rect.toMap());
+				rectangleToSerialize.remove("_id");
+				rectangleToSerialize.put("rectID", ((ObjectId)rect.get("_id")).toHexString());
+				rectangleToSerialize.put("imageID",((ObjectId)rect.get("imageID")).toHexString());
+				if(rect.get("userID") != null){
+					rectangleToSerialize.put("userID", ((ObjectId)rect.get("userID")).toHexString());
+				}
+				else{
+					rectangleToSerialize.put("userID",null);
+				}
+				rectangles.add(rectangleToSerialize);
 			}
-			else{
-				rectangleToSerialize.put("userID",null);
-			}
-			rectangles.add(rectangleToSerialize);
 		}
 		System.out.println("Response: " + JSON.serialize(rectangles));
 		return Response.ok(JSON.serialize(rectangles), MediaType.APPLICATION_JSON).build();
