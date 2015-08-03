@@ -695,8 +695,10 @@ public class RectanglesActivity extends AppCompatActivity {
 
         for (Rectangle rect : rectangles) {
             canvas.drawRect(rect.getX1(), rect.getY1(), rect.getX2(), rect.getY2(), paint);
-            if(!rect.getUserID().equals("")) {
-                canvas.drawText(getFriendNameWithID(rect.getUserID()), rect.getX1() + 10, rect.getY1() + imageView.getHeight() / 10, textPaint);
+            if(rect.getUserID() != null) {
+                if (!rect.getUserID().equals("")) {
+                    canvas.drawText(getFriendNameWithID(rect.getUserID()), rect.getX1() + 10, rect.getY1() + imageView.getHeight() / 10, textPaint);
+                }
             }
         }
 

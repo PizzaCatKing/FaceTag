@@ -10,14 +10,17 @@ public class RecognizerInterface {
 	private static RecognizerInterface instance;
 	
 	private String filesLocation;
-	
+	private String imageExtention;
+	private String recognizerExtention;
 	public static RecognizerInterface getInstance() {
 		if (instance == null){
-			System.load("C:\\Users\\Chris_2\\Documents\\FaceTagWorkspace\\workspace\\FaceTag\\src\\faceTag\\recognizer\\faceTag_recognizer_RecognizerInterface.dll");
+			System.load(Globals.LIB_LOCATION);
 			//System.loadLibrary("faceTag_recognizer_RecognizerInterface");
 			instance = new RecognizerInterface();
 			instance.filesLocation = Globals.FILES_ROOT;
-			new File(instance.filesLocation + Globals.RECOGNIZER_ROOT_EXTENTION).mkdirs();
+			instance.imageExtention = Globals.IMAGE_ROOT_EXTENTION;
+			instance.recognizerExtention = Globals.RECOGNIZER_ROOT_EXTENTION;
+			new File(instance.filesLocation + instance.recognizerExtention).mkdirs();
 		}
 		return instance;
 	}

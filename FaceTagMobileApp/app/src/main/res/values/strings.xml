@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Face Tag</string>
+    <string name="app_name">FaceTag</string>
     <string name="login">Login</string>
     <string name="signup">Sign Up</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_signup">signupActivity</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_signup">Sign Up</string>
     <string name="title_activity_main_menu">FaceTag</string>
-    <string name="title_activity_friends_list">FriendsListActivity</string>
-    <string name="title_activity_user_view">UserViewActivity</string>
-    <string name="title_activity_image_list">ImageListActivity</string>
-    <string name="title_activity_image_submit_form">ImageSubmitFormActivity</string>
-    <string name="title_activity_image_view">ImageViewActivity</string>
-    <string name="title_activity_rectangles">RectanglesActivity</string>
-    <string name="title_activity_friend_picker">FriendPickerActivity</string>
-    <string name="title_activity_search">SearchActivity</string>
+    <string name="title_activity_friends_list">FaceTag</string>
+    <string name="title_activity_user_view">FaceTag</string>
+    <string name="title_activity_image_list">FaceTag</string>
+    <string name="title_activity_image_submit_form">Image Submit</string>
+    <string name="title_activity_image_view">FaceTag</string>
+    <string name="title_activity_rectangles">Rectangles</string>
+    <string name="title_activity_friend_picker">Select User</string>
+    <string name="title_activity_search">FaceTag Search</string>
 
 </resources>

@@ -22,23 +22,36 @@ using namespace std;
 JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_detectForRectangles(JNIEnv *env , jobject thisObj, jstring _imageID){
 	jclass jClassRecognizerInterface = env->GetObjectClass(thisObj);
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
 	jstring _filesLocation = (jstring)env->GetObjectField(thisObj, fid_pathString);
+	jstring _imageLocation = (jstring)env->GetObjectField(thisObj, fid_imagePathString);
+	jstring _recognizerLocation = (jstring)env->GetObjectField(thisObj, fid_recognizerPathString);
+
 
 	const char * filesLocationArr;
+	const char * imageLocationArr;
+	const char * recognizerLocationArr;
 	const char * imageIDArr;
 
 	filesLocationArr = env->GetStringUTFChars(_filesLocation, 0);
+	imageLocationArr = env->GetStringUTFChars(_imageLocation, 0);
+	recognizerLocationArr = env->GetStringUTFChars(_recognizerLocation, 0);
 	imageIDArr = env->GetStringUTFChars(_imageID, 0);
 
 	string filesLocation(filesLocationArr);
+	string imageLocation(imageLocationArr);
+	string recognizerLocation(recognizerLocationArr);
 	string imageID(imageIDArr);
 
 	env->ReleaseStringUTFChars(_filesLocation, filesLocationArr);
+	env->ReleaseStringUTFChars(_imageLocation, imageLocationArr);
+	env->ReleaseStringUTFChars(_recognizerLocation, recognizerLocationArr);
 	env->ReleaseStringUTFChars(_imageID, imageIDArr);
 
 	CascadeClassifier face_cascade;
 
-	Mat image = imread(filesLocation + "images\\" + imageID, CV_LOAD_IMAGE_GRAYSCALE);
+	Mat image = imread(filesLocation + imageLocation + imageID, CV_LOAD_IMAGE_GRAYSCALE);
 	if( !face_cascade.load( filesLocation + "haarcascade_frontalface_alt.xml" ) ){ printf("--(!)Error loading face cascade\n"); cin.ignore(); return NULL; };
 
 	vector<Rect> faces;
@@ -73,6 +86,8 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 
 	//Get fields
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
 	//get class methods we will be using
 	jmethodID rectGetImageIDMethod = env->GetMethodID(jClassRectangle, "getImageIDString", "()Ljava/lang/String;");
 	jmethodID rectGetUserIDMethod = env->GetMethodID(jClassRectangle, "getUserIDString", "()Ljava/lang/String;");
@@ -83,11 +98,26 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 	//jmethodID rectGetY1Method = env->GetMethodID(jClassRectangle, "getY1", "()I;");
 
 	jstring _filesLocation = (jstring)env->GetObjectField(thisObj, fid_pathString);
+	jstring _imageLocation = (jstring)env->GetObjectField(thisObj, fid_imagePathString);
+	jstring _recognizerLocation = (jstring)env->GetObjectField(thisObj, fid_recognizerPathString);
 
 	const char * filesLocationArr;
+	const char * imageLocationArr;
+	const char * recognizerLocationArr;
+
 	filesLocationArr = env->GetStringUTFChars(_filesLocation, 0);
+	imageLocationArr = env->GetStringUTFChars(_imageLocation, 0);
+	recognizerLocationArr = env->GetStringUTFChars(_recognizerLocation, 0);
+
 	string filesLocation(filesLocationArr);
+	string imageLocation(imageLocationArr);
+	string recognizerLocation(recognizerLocationArr);
+
 	env->ReleaseStringUTFChars(_filesLocation, filesLocationArr);
+	env->ReleaseStringUTFChars(_imageLocation, imageLocationArr);
+	env->ReleaseStringUTFChars(_recognizerLocation, recognizerLocationArr);
+
+
 	int idCount = env->GetArrayLength(_userIDS);
 	Ptr<FaceRecognizer> recognizers[idCount];
 	//Load recognizers
@@ -97,10 +127,10 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 		string userID(rawUserIDString);
 		env->ReleaseStringUTFChars(userIDString, rawUserIDString);
 		if(userID != ""){
-			string recognizerFileName(filesLocation + "recognizer\\" + userID);
+			string recognizerFileName(filesLocation + recognizerLocation + userID);
 			if (ifstream(recognizerFileName.c_str())){
 				recognizers[i] = createLBPHFaceRecognizer();
-				recognizers[i]->load(filesLocation + "recognizer\\" + userID);
+				recognizers[i]->load(recognizerFileName);
 			}
 			else{
 				recognizers[i] = NULL;
@@ -129,18 +159,18 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 		string imageID(strReturn);
 		env->ReleaseStringUTFChars(imageIDString, strReturn);
 		Mat currentImage;
-		string imagesFileName(filesLocation + "images\\" + imageID);
+		string imagesFileName(filesLocation + imageLocation + imageID);
 		if (ifstream(imagesFileName.c_str())){
 			if ( images.find(imageID) == images.end() ) {
 			  // Load image
-				images[imageID] = imread(filesLocation + "images\\" + imageID, CV_LOAD_IMAGE_GRAYSCALE);
+				images[imageID] = imread(imagesFileName, CV_LOAD_IMAGE_GRAYSCALE);
 
 			}
 		}
 		currentImage = images[imageID];
 		if( currentImage.empty() )
 		{
-			cout <<" --(!) No image found - " << filesLocation << "images\\" << imageID << " !" << endl;
+			cout <<" --(!) No image found - " << imagesFileName << " !" << endl;
 		}
 		else
 		{
@@ -196,7 +226,13 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 	cout << "start" << endl;
 	jclass jClassRecognizerInterface = env->GetObjectClass(thisObj);
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+
 	jstring _filesLocation = (jstring)env->GetObjectField(thisObj, fid_pathString);
+	jstring _imageLocation = (jstring)env->GetObjectField(thisObj, fid_imagePathString);
+	jstring _recognizerLocation = (jstring)env->GetObjectField(thisObj, fid_recognizerPathString);
+
 	//Get classes
 	jclass jClassRectangle = env->FindClass("faceTag/entities/Rectangle");
 
@@ -208,10 +244,22 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 	jfieldID rectY1 = env->GetFieldID(jClassRectangle, "y1", "I");
 	jfieldID rectX2 = env->GetFieldID(jClassRectangle, "x2", "I");
 	jfieldID rectY2 = env->GetFieldID(jClassRectangle, "y2", "I");
+
 	const char * filesLocationArr;
+	const char * imageLocationArr;
+	const char * recognizerLocationArr;
+
 	filesLocationArr = env->GetStringUTFChars(_filesLocation, 0);
+	imageLocationArr = env->GetStringUTFChars(_imageLocation, 0);
+	recognizerLocationArr = env->GetStringUTFChars(_recognizerLocation, 0);
+
 	string filesLocation(filesLocationArr);
+	string imageLocation(imageLocationArr);
+	string recognizerLocation(recognizerLocationArr);
+
 	env->ReleaseStringUTFChars(_filesLocation, filesLocationArr);
+	env->ReleaseStringUTFChars(_imageLocation, imageLocationArr);
+	env->ReleaseStringUTFChars(_recognizerLocation, recognizerLocationArr);
 	// Don't reload images we have already loaded
 	map<string, Mat> images;
 	// Don't reload recommenders we have already loaded
@@ -228,17 +276,17 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 		env->ReleaseStringUTFChars(imageIDString, strReturn);
 		Mat currentImage;
 
-		string imagesFileName(filesLocation + "images\\" + imageID);
+		string imagesFileName(filesLocation + imageLocation + imageID);
 		if (ifstream(imagesFileName.c_str())){
 			if ( images.find(imageID) == images.end() ) {
 			  // Load image
-				images[imageID] = imread(filesLocation + "images\\" + imageID, CV_LOAD_IMAGE_GRAYSCALE);
+				images[imageID] = imread(imagesFileName, CV_LOAD_IMAGE_GRAYSCALE);
 			}
 		}
 		currentImage = images[imageID];
 		if( currentImage.empty() )
 		{
-			cout <<" --(!) No image found - " << filesLocation << "images\\" << imageID << " !" << endl;
+			cout <<" --(!) No image found - " << filesLocation << imageLocation << imageID << " !" << endl;
 		}
 		else
 		{
@@ -252,10 +300,10 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 				Ptr<FaceRecognizer> currentRecognizer = createLBPHFaceRecognizer();
 				if ( recognizers.find(userID) == recognizers.end() ) {
 				  // Load image
-					string recognizerFileName(filesLocation + "recognizer\\" + userID);
+					string recognizerFileName(filesLocation + recognizerLocation + userID);
 					if (ifstream(recognizerFileName.c_str())){
-						cout << "Loaded recognizer: " << filesLocation << "recognizer\\" << userID << endl;
-						currentRecognizer->load(filesLocation + "recognizer\\" + userID);
+						cout << "Loaded recognizer: " << recognizerFileName << endl;
+						currentRecognizer->load(recognizerFileName);
 					}
 					else{
 						cout << "No recognizer for: " << userID << endl;
@@ -285,8 +333,8 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 	for(auto &ent : recognizers) {
 		// ent.first is user id (name of recognizer)
 		// ent.second is the recognizer
-		cout << "Saving \"" << filesLocation << "recognizer\\" << ent.first << "\"" << endl;
-		ent.second->save(filesLocation + "recognizer\\" + ent.first);
+		cout << "Saving " << filesLocation << recognizerLocation << ent.first << endl;
+		ent.second->save(filesLocation + recognizerLocation + ent.first);
 	}
 	// Return true means we completed without errors
 	return true;
