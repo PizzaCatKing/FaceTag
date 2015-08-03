@@ -56,6 +56,10 @@
             android:name=".FriendPickerActivity"
             android:label="@string/title_activity_friend_picker" >
         </activity>
+        <activity
+            android:name=".SearchActivity"
+            android:label="@string/title_activity_search" >
+        </activity>
     </application>
 
 </manifest>

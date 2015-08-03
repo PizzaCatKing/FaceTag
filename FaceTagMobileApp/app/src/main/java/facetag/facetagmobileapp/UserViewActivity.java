@@ -315,7 +315,7 @@ public class UserViewActivity extends ActionBarActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Signing Up ...", true);
+            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Removing Friend ...", true);
         }
 
     }
@@ -414,7 +414,7 @@ public class UserViewActivity extends ActionBarActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Logging in ...", true);
+            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Getting images ...", true);
         }
     }
 
@@ -513,7 +513,7 @@ public class UserViewActivity extends ActionBarActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Logging in ...", true);
+            ringProgressDialog = ProgressDialog.show(UserViewActivity.this, "Please wait ...", "Getting friends ...", true);
         }
     }
 

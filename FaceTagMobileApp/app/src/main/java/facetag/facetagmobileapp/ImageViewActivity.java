@@ -156,7 +156,7 @@ public class ImageViewActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(ImageViewActivity.this, "Please wait ...", "Logging in ...", true);
+            ringProgressDialog = ProgressDialog.show(ImageViewActivity.this, "Please wait ...", "Retrieving image ...", true);
         }
     }
 

@@ -1,9 +1,11 @@
 package faceTag.mongo;
 
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -55,6 +57,21 @@ public class ImageCollectionManager {
 
 	public static DBCursor runQuery(BasicDBObject query) {
 		DBCollection coll = getImageCollection();
+		return coll.find(query);
+	}
+	
+	public static DBCursor getAllImages(List<ObjectId> ids) {
+		DBCollection coll = getImageCollection();
+		BasicDBList list = new BasicDBList();
+		
+		if(ids.isEmpty()){
+			return null;
+		}
+		
+		for(ObjectId id: ids){
+			list.add(new BasicDBObject("_id", id));
+		}
+		BasicDBObject query = new BasicDBObject("$or", list);
 		return coll.find(query);
 	}
 }

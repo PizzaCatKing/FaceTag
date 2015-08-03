@@ -50,6 +50,19 @@
         android:layout_height="wrap_content"
         android:text="Search For Users"
         android:id="@+id/mainUserSearchButton"
+        android:layout_below="@+id/mainFaceTagSearchButton"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Face Tag Search"
+        android:id="@+id/mainFaceTagSearchButton"
         android:layout_below="@+id/mainNewImageButton"
         android:layout_centerHorizontal="true"
         android:layout_margin="10dp"

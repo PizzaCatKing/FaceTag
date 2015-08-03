@@ -1,5 +1,7 @@
 package faceTag.api;
 
+import java.util.List;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -17,6 +19,16 @@ public class ImageAction {
 			@QueryParam("token") String token) {
 
 		return ImageController.getImage(username, token, imageid);
+
+	}
+	
+	@GET
+	@Path("/search")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response searchForImages(@QueryParam("userID") String username,@QueryParam("token") String token,
+			@QueryParam("include") final List<String> includeList, @QueryParam("exclude") final List<String> excludeList) {
+
+		return ImageController.searchForImages(username, token, includeList, excludeList);
 
 	}
 

@@ -185,7 +185,7 @@ public class UserListActivity extends ActionBarActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(UserListActivity.this, "Please wait ...", "Logging in ...", true);
+            ringProgressDialog = ProgressDialog.show(UserListActivity.this, "Please wait ...", "Getting friends ...", true);
         }
     }
 

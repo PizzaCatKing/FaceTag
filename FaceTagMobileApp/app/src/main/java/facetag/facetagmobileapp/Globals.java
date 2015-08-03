@@ -8,4 +8,5 @@ public class Globals {
     public static final int ACCOUNT_MADE_CODE = 1235;
     public static final int PICK_IMAGE_CODE = 51340;
     public static final int PICK_FRIEND_CODE = 9834;
+    public static final int PICK_FRIEND_CODE2 = 9835;
 }

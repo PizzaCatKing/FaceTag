@@ -5,199 +5,205 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
+import facetag.facetagmobileapp.adapters.ListItemAdapter;
 import facetag.facetagmobileapp.entities.Image;
+import facetag.facetagmobileapp.entities.ListItem;
 import facetag.facetagmobileapp.entities.RestError;
+import facetag.facetagmobileapp.entities.SectionItem;
 import facetag.facetagmobileapp.entities.Token;
 import facetag.facetagmobileapp.entities.User;
 import facetag.facetagmobileapp.singletons.ObjectMapperSingleton;
 
-
-@SuppressWarnings("deprecation")
-public class MainMenuActivity extends ActionBarActivity {
+public class SearchActivity extends AppCompatActivity {
     ProgressDialog ringProgressDialog;
-    Button myFriendsButton;
-    Button myImagesButton;
-    Button newImageButton;
-    Button faceTagSearchButton;
-    Button searchForUsersButton;
-    Button logoutButton;
+    ArrayList<ListItem> listItems;
+    ArrayList<User> includes;
+    ArrayList<User> excludes;
+    ArrayList<User> potentials;
+    ArrayList<User> friends;
+
+
+    ListView listView;
+    Button addIncludeButton;
+    Button addExcludeButton;
+    Button searchButton;
+
+
+
+    ListItemAdapter adapter;
     Token token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_menu);
-        myFriendsButton = (Button) findViewById(R.id.mainMyFriendsButton);
-        myImagesButton = (Button) findViewById(R.id.mainMyImagesButton);
-        newImageButton = (Button) findViewById(R.id.mainNewImageButton);
-        searchForUsersButton = (Button) findViewById(R.id.mainUserSearchButton);
-        logoutButton = (Button) findViewById(R.id.mainLogoutButton);
-        faceTagSearchButton = (Button) findViewById(R.id.mainFaceTagSearchButton);
+        setContentView(R.layout.activity_search);
 
+        listView = (ListView) findViewById(R.id.searchListView);
+        addIncludeButton = (Button) findViewById(R.id.searchaddIncButton);
+        addExcludeButton = (Button) findViewById(R.id.searchAddExcludeButton);
+        searchButton = (Button) findViewById(R.id.searchSearchButton);
 
         Intent i = getIntent();
         token = i.getParcelableExtra("token");
 
-        myFriendsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new getCurrentUserFriendsTask().execute(token);
-            }
-        });
-        myImagesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new getImagesForUserTask().execute(token);
-            }
-        });
-        newImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(), ImageSubmitFormActivity.class);
-                i.putExtra("token",token);
-                startActivity(i);
-            }
-        });
-        searchForUsersButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new getAllUsersTask().execute(token);
-            }
-        });
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new logoutActivity().execute(token);
-            }
-        });
-        faceTagSearchButton.setOnClickListener(new View.OnClickListener() {
+        listItems = new ArrayList<>();
+        includes = new ArrayList<>();
+        excludes = new ArrayList<>();
+        friends = new ArrayList<>();
+        potentials = new ArrayList<>();
+
+        adapter = new ListItemAdapter(this, listItems);
+        listView.setAdapter(adapter);
+
+
+        addIncludeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(getApplicationContext(), SearchActivity.class);
-                i.putExtra("token",token);
-                startActivity(i);
+                Intent i = new Intent(SearchActivity.this, FriendPickerActivity.class);
+                i.putExtra("includes", true);
+                i.putExtra("users", potentials);
+                startActivityForResult(i, Globals.PICK_FRIEND_CODE2);
             }
         });
 
-    }
-
-    private class logoutActivity extends AsyncTask<Token, Void, ResponseEntity<String>> {
-
-        @Override
-        protected ResponseEntity<String> doInBackground(Token... params) {
-            if (params.length != 1) {
-                return null;
+        addExcludeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(SearchActivity.this, FriendPickerActivity.class);
+                i.putExtra("includes", false);
+                i.putExtra("users", potentials);
+                startActivityForResult(i, Globals.PICK_FRIEND_CODE2);
             }
+        });
 
-            Token thisToken = params[0];
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-
-            if (token == null) {
-                return null;
-            }
-
-            if (thisToken.getUserID().equals("") || thisToken.getToken().equals("")) {
-                return null;
-            }
-
-            RestTemplate restTemplate = new RestTemplate();
-
-            restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
-            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-
-            body.add("userID", thisToken.getUserID());
-            body.add("token", thisToken.getToken());
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-
-            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
-            return restTemplate.postForEntity(Globals.SERVER_ADDRESS + "/logout", request, String.class);
-        }
-
-        @Override
-        protected void onPostExecute(ResponseEntity<String> result) {
-            ringProgressDialog.dismiss();
-            if (result == null) {
-                //Invalid input! Tell the user to make better entries
-                Context context = getApplicationContext();
-                CharSequence text = "Invalid token";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-            } else if (result.getStatusCode() == HttpStatus.OK) {
-                System.out.println(result.getStatusCode());
-                //We got a good return!
-                Context context = getApplicationContext();
-                CharSequence text = "Log Out successful!";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-
-                //Show the login screen and finish this activity
-                Intent i = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(i);
-                finish();
-            } else {
-                RestError error;
-                try {
-                    error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
-                    Context context = getApplicationContext();
-                    CharSequence text = "Error: " + error.getMessage();
-                    int duration = Toast.LENGTH_SHORT;
-
-                    Toast toast = Toast.makeText(context, text, duration);
-                    toast.show();
-                } catch (Exception e) {
-                    Context context = getApplicationContext();
-                    CharSequence text = "Error: Error message could not be parsed";
-                    int duration = Toast.LENGTH_SHORT;
-
-                    Toast toast = Toast.makeText(context, text, duration);
-                    toast.show();
+            @Override
+            public void onItemClick(AdapterView l, View v, int position, long id) {
+                ListItem target = listItems.get(position);
+                if (!target.isSection()) {
+                    Intent i = new Intent(SearchActivity.this, FriendPickerActivity.class);
+                    if (includes.contains(listItems.get(position))) {
+                        i.putExtra("includes", true);
+                        i.putExtra("rectLoc", includes.indexOf(target));
+                    } else if (excludes.contains(listItems.get(position))) {
+                        i.putExtra("includes", false);
+                        i.putExtra("rectLoc", excludes.indexOf(target));
+                    }
+                    i.putExtra("users", potentials);
+                    startActivityForResult(i, Globals.PICK_FRIEND_CODE2);
                 }
-
             }
 
-        }
+        });
 
-        @Override
-        protected void onPreExecute() {
-
-            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Logging Out ...", true);
-        }
-
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                System.out.println(" ---- BEEP --- ");
+                new GetSearch(includes, excludes).execute(token);
+            }
+        });
+        new GetUserFriendsTask().execute(token);
+        updateList();
     }
 
-    private class getCurrentUserFriendsTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == Globals.PICK_FRIEND_CODE2){
+            if(resultCode == RESULT_OK){
+                Log.d("DEBUG --- --- ", "RET");
+                int targetPosition = data.getIntExtra("rectLoc", -1);
+                boolean inc = data.getBooleanExtra("includes", false);
+                User user = data.getParcelableExtra("user");
+
+                Log.d("DEBUG --- --- ", "RET " + targetPosition);
+                Log.d("DEBUG --- --- ", "RET " + inc);
+                Log.d("DEBUG --- --- ", "RET " + user);
+
+
+                if(inc){
+                    if(!user.getUserID().equals("")) {
+                        if(targetPosition != -1) {
+                            includes.set(targetPosition, user);
+                        }
+                        else{
+                            includes.add(user);
+                            for(User u : potentials){
+                                if(u.equalsUser(user)){
+                                    potentials.remove(u);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        if(targetPosition != -1) {
+                            potentials.add(new User(includes.get(targetPosition)));
+                            includes.remove(targetPosition);
+                        }
+                    }
+                }
+                else{
+                    if(!user.getUserID().equals("")) {
+
+                        if(targetPosition != -1) {
+                            excludes.set(targetPosition, user);
+                        }
+                        else{
+                            excludes.add(user);
+                            for(User u : potentials){
+                                if(u.equalsUser(user)){
+                                    potentials.remove(u);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        if(targetPosition != -1) {
+                            potentials.add(new User(excludes.get(targetPosition)));
+                            excludes.remove(targetPosition);
+                        }
+                    }
+                }
+                Collections.sort(potentials, new Comparator<User>() {
+                    public int compare(User o1, User o2) {
+                        return o1.getName().compareTo(o2.getName());
+                    }
+                });
+
+                updateList();
+            }
+        }
+    }
+
+
+    private class GetUserFriendsTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
 
         @Override
         protected ResponseEntity<String> doInBackground(Token... params) {
@@ -243,16 +249,10 @@ public class MainMenuActivity extends ActionBarActivity {
             } else {
                 //We got a good return!
                 if (result.getStatusCode() == HttpStatus.OK) try {
-                    ArrayList<User> friends = ObjectMapperSingleton.getObjectMapper()
+                    friends = ObjectMapperSingleton.getObjectMapper()
                             .readValue(result.getBody(), new TypeReference<ArrayList<User>>() {
                             });
-
-                    // We have a valid token - go to main menu
-                    Intent i = new Intent(getApplicationContext(), UserListActivity.class);
-                    i.putParcelableArrayListExtra("users", friends);
-                    i.putExtra("token", token);
-                    startActivity(i);
-
+                    new getThisUserTask().execute(token);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Context context = getApplicationContext();
@@ -282,17 +282,21 @@ public class MainMenuActivity extends ActionBarActivity {
 
                 }
             }
-
         }
-
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Getting users ...", true);
+            ringProgressDialog = ProgressDialog.show(SearchActivity.this, "Please wait ...", "Getting Friends...", true);
         }
     }
 
-    private class getAllUsersTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
+    private class GetSearch extends AsyncTask<Token, Void, ResponseEntity<String>> {
+        ArrayList<User> inc;
+        ArrayList<User> exc;
+        public GetSearch(ArrayList<User> inc, ArrayList<User> exc){
+            this.inc = inc;
+            this.exc = exc;
+        }
 
         @Override
         protected ResponseEntity<String> doInBackground(Token... params) {
@@ -315,105 +319,15 @@ public class MainMenuActivity extends ActionBarActivity {
 
             restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
 
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/user/")
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/image/search")
                     .queryParam("userID", thisToken.getUserID())
                     .queryParam("token", thisToken.getToken());
-
-            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
-
-            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
-        }
-
-        @Override
-        protected void onPostExecute(ResponseEntity<String> result) {
-            ringProgressDialog.dismiss();
-            if (result == null) {
-                //Invalid input! Tell the user to make better entries
-                Context context = getApplicationContext();
-                CharSequence text = "Error - unable to access token values";
-                int duration = Toast.LENGTH_SHORT;
-
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-            } else {
-                //We got a good return!
-                if (result.getStatusCode() == HttpStatus.OK) try {
-                    ArrayList<User> friends = ObjectMapperSingleton.getObjectMapper()
-                            .readValue(result.getBody(), new TypeReference<ArrayList<User>>() {
-                            });
-
-                    // We have a valid token - go to main menu
-                    Intent i = new Intent(getApplicationContext(), UserListActivity.class);
-                    i.putParcelableArrayListExtra("users", friends);
-                    i.putExtra("token", token);
-                    startActivity(i);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Context context = getApplicationContext();
-                    CharSequence text = "IO error while mapping users!";
-                    int duration = Toast.LENGTH_SHORT;
-                    Toast toast = Toast.makeText(context, text, duration);
-                    toast.show();
-                }
-                else {
-                    RestError error;
-                    try {
-                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
-                        Context context = getApplicationContext();
-                        CharSequence text = "Error: " + error.getMessage();
-                        int duration = Toast.LENGTH_SHORT;
-
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Context context = getApplicationContext();
-                        CharSequence text = "IO error while mapping error!";
-                        int duration = Toast.LENGTH_SHORT;
-                        Toast toast = Toast.makeText(context, text, duration);
-                        toast.show();
+                    for(User u : inc){
+                        builder.queryParam("include", u.getUserID());
                     }
-
-                }
-            }
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-
-            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Getting users ...", true);
-        }
-    }
-
-    private class getImagesForUserTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
-
-        @Override
-        protected ResponseEntity<String> doInBackground(Token... params) {
-            if (params.length != 1) {
-                return null;
-            }
-
-            Token thisToken = params[0];
-
-
-            if (token == null) {
-                return null;
-            }
-
-            if (thisToken.getUserID().equals("") || thisToken.getToken().equals("")) {
-                return null;
-            }
-
-            RestTemplate restTemplate = new RestTemplate();
-
-            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/user/"+thisToken.getUserID()+"/images")
-                    .queryParam("userID", thisToken.getUserID())
-                    .queryParam("token", thisToken.getToken());
-
+                    for(User u : exc){
+                        builder.queryParam("exclude", u.getUserID());
+                    }
             restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
 
             return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
@@ -436,17 +350,103 @@ public class MainMenuActivity extends ActionBarActivity {
                     ArrayList<Image> images = ObjectMapperSingleton.getObjectMapper()
                             .readValue(result.getBody(), new TypeReference<ArrayList<Image>>() {
                             });
-                    System.out.println(result.getBody());
+
                     // We have a valid token - go to main menu
                     Intent i = new Intent(getApplicationContext(), ImageListActivity.class);
                     i.putParcelableArrayListExtra("images", images);
                     i.putExtra("token", token);
                     startActivity(i);
-
                 } catch (IOException e) {
                     e.printStackTrace();
                     Context context = getApplicationContext();
-                    CharSequence text = "IO error while mapping images!";
+                    CharSequence text = "IO error while mapping users!";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                }
+                else {
+                    RestError error;
+                    try {
+                        error = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), RestError.class);
+                        Context context = getApplicationContext();
+                        CharSequence text = "Error: " + error.getMessage();
+                        int duration = Toast.LENGTH_SHORT;
+
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Context context = getApplicationContext();
+                        CharSequence text = "IO error while mapping error!";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+                    }
+
+                }
+            }
+        }
+        @Override
+        protected void onPreExecute() {
+
+            ringProgressDialog = ProgressDialog.show(SearchActivity.this, "Please wait ...", "Getting Friends...", true);
+        }
+    }
+
+    private class getThisUserTask extends AsyncTask<Token, Void, ResponseEntity<String>> {
+
+        @Override
+        protected ResponseEntity<String> doInBackground(Token... params) {
+            if (params.length != 1) {
+                return null;
+            }
+
+            Token thisToken = params[0];
+
+
+            if (token == null) {
+                return null;
+            }
+
+            if (thisToken.getUserID().equals("") || thisToken.getToken().equals("")) {
+                return null;
+            }
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(Globals.SERVER_ADDRESS + "/user/" + thisToken.getUserID())
+                    .queryParam("userID", thisToken.getUserID())
+                    .queryParam("token", thisToken.getToken());
+
+            restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
+
+            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+        }
+
+        @Override
+        protected void onPostExecute(ResponseEntity<String> result) {
+            ringProgressDialog.dismiss();
+            if (result == null) {
+                //Invalid input! Tell the user to make better entries
+                Context context = getApplicationContext();
+                CharSequence text = "Error - unable to access token values";
+                int duration = Toast.LENGTH_SHORT;
+
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            } else {
+                //We got a good return!
+                if (result.getStatusCode() == HttpStatus.OK) try {
+                    User us = ObjectMapperSingleton.getObjectMapper().readValue(result.getBody(), User.class);
+                    friends.add(us);
+                    friends.add(new User());
+                    potentials.addAll(friends);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Context context = getApplicationContext();
+                    CharSequence text = "IO error while mapping users!";
                     int duration = Toast.LENGTH_SHORT;
                     Toast toast = Toast.makeText(context, text, duration);
                     toast.show();
@@ -478,14 +478,17 @@ public class MainMenuActivity extends ActionBarActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(MainMenuActivity.this, "Please wait ...", "Getting images ...", true);
+            ringProgressDialog = ProgressDialog.show(SearchActivity.this, "Please wait ...", "Getting user ...", true);
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main_menu, menu);
-        return true;
+    private void updateList(){
+        adapter.clear();
+        adapter.add(new SectionItem("Include"));
+        adapter.addAll(includes);
+        adapter.add(new SectionItem("Exclude"));
+        adapter.addAll(excludes);
+        adapter.notifyDataSetChanged();
     }
+
 }

@@ -26,6 +26,7 @@ public class FriendPickerActivity extends AppCompatActivity {
     ArrayList<User> friends;
     int rectLoc; // Extra that the sender will want when this gets returned
     UsersAdapter adapter;
+    boolean includes; // Is this going into the includes or excludes area
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +38,7 @@ public class FriendPickerActivity extends AppCompatActivity {
         Intent i = getIntent();
         friends = i.getParcelableArrayListExtra("users");
         rectLoc = i.getIntExtra("rectLoc", -1);
+        includes = i.getBooleanExtra("includes", false);
         if(friends == null){
             friends = new ArrayList<>();
         }
@@ -71,6 +73,7 @@ public class FriendPickerActivity extends AppCompatActivity {
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("user",FriendPickerActivity.this.adapter.getItem(position));
                 returnIntent.putExtra("rectLoc", rectLoc);
+                returnIntent.putExtra("includes", includes);
                 setResult(RESULT_OK, returnIntent);
                 finish();
 

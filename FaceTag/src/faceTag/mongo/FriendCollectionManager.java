@@ -90,20 +90,23 @@ public class FriendCollectionManager {
 		DBCursor search2 = coll.find(clause2);
 
 		BasicDBList results = new BasicDBList();
-
+		System.out.println(search1.count());
+		System.out.println(search2.count());
 		// We are friend 1 so we need to find all the friend 2s
-		if (search1.hasNext()) {
+		while (search1.hasNext()) {
 			DBObject obj = search1.next();
 			BasicDBObject friendProfile = new BasicDBObject();
 			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) obj.get("userID2")));
+			System.out.println((ObjectId) obj.get("userID2"));
 			results.add(friendProfile);
 		}
 
 		// We are friend 2 so we need to find all the friend 1s
-		if (search2.hasNext()) {
+		while (search2.hasNext()) {
 			DBObject obj = search2.next();
 			BasicDBObject friendProfile = new BasicDBObject();
 			friendProfile.putAll(UserCollectionManager.getUser((ObjectId) obj.get("userID1")));
+			System.out.println((ObjectId) obj.get("userID1"));
 			results.add(friendProfile);
 		}
 

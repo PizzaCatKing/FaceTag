@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -14,13 +15,17 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import org.bson.types.ObjectId;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 import faceTag.entities.ErrorCode;
 import faceTag.entities.Globals;
 import faceTag.entities.Image;
 import faceTag.mongo.ImageCollectionManager;
+import faceTag.mongo.RectangleCollectionManager;
 
 public class ImageController {
 
@@ -192,5 +197,43 @@ public class ImageController {
 		BasicDBObject toReturn = new BasicDBObject();
 		toReturn.put("deleted", deleted);
 		return Response.ok(JSON.serialize(toReturn), MediaType.APPLICATION_JSON).build();
+	}
+	
+	// Include and exclude are arrays of userIDs
+	public static Response searchForImages(String _id, String token, List<String> include, List<String> exclude) {
+		if (!(StringTool.isValid(_id) && StringTool.isValid(token) && StringTool.isValidObjectID(_id))) {
+			BasicDBObject toReturn = new BasicDBObject();
+			toReturn.put("message", "Invalid Parameters");
+			toReturn.put("error", ErrorCode.ERROR_BAD_PARAMETERS);
+
+			return Response.status(Response.Status.BAD_REQUEST).entity(JSON.serialize(toReturn))
+					.type(MediaType.APPLICATION_JSON).build();
+		}
+		/*
+		Response tokenValidation = TokenController.validateToken(_id, token);
+		if (tokenValidation != null) {
+			return tokenValidation;
+		}
+		*/
+		// change arrays of userIDs to ObjectIds
+
+		List<ObjectId> imageIDs =  RectangleCollectionManager.getImagesWithUsers(include, exclude);
+		
+		
+		DBCursor cursor = ImageCollectionManager.getAllImages(imageIDs);
+		
+		BasicDBList images = new BasicDBList();
+		if(cursor != null){
+			System.out.println(imageIDs.toString() + " "  +	cursor.count());
+			
+			for (DBObject image : cursor) {
+				BasicDBObject imageToSerialize = new BasicDBObject(image.toMap());
+				imageToSerialize.remove("_id");
+				imageToSerialize.put("imageID", ((ObjectId) image.get("_id")).toHexString());
+				imageToSerialize.put("ownerID", ((ObjectId) image.get("ownerID")).toHexString());
+				images.add(imageToSerialize);
+			}
+		}
+		return Response.ok(JSON.serialize(images), MediaType.APPLICATION_JSON).build();
 	}
 }

@@ -3,11 +3,18 @@ package facetag.facetagmobileapp.entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class User implements Parcelable {
+import java.util.Comparator;
+
+public class User implements Parcelable, ListItem{
     private String userID;
     private String name;
 
     public User() {name = "EMPTY"; userID = "";}
+
+    public User(String userID, String name) {
+        this.userID = userID;
+        this.name = name;
+    }
 
     public String getUserID() {
         return userID;
@@ -47,13 +54,33 @@ public class User implements Parcelable {
         }
     };
 
-    private User(Parcel in) {
+    public User(Parcel in) {
         userID = in.readString();
         name = in.readString();
+    }
+
+    public User(User user) {
+        userID = user.getUserID();
+        name = user.getName();
+    }
+
+
+    public boolean equalsUser(User u) {
+        return (u.getUserID().equals(getUserID()));
     }
 
     @Override
     public String toString() {
         return name;
     }
+
+    @Override
+    public boolean isSection() {
+        return false;
+    }
+
+    public User clone() {
+        return new User(userID,name);
+    }
+
 }

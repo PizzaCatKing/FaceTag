@@ -676,7 +676,7 @@ public class RectanglesActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
 
-            ringProgressDialog = ProgressDialog.show(RectanglesActivity.this, "Please wait ...", "User info ...", true);
+            ringProgressDialog = ProgressDialog.show(RectanglesActivity.this, "Please wait ...", "Getting users...", true);
         }
     }
 

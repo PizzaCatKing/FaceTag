@@ -1,6 +1,8 @@
 package faceTag.mongo;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bson.types.ObjectId;
 
@@ -10,6 +12,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
+import faceTag.controllers.StringTool;
 import faceTag.entities.Rectangle;
 
 public class RectangleCollectionManager {
@@ -58,4 +61,44 @@ public class RectangleCollectionManager {
 		return rectangles;
 	}
 	
+	public static List<ObjectId> getImagesWithUsers(List<String> include,List<String> exclude) {
+		DBCollection coll = getRectangleCollection();
+		List<ObjectId> resultList = new ArrayList<ObjectId>();
+		
+		if(include.isEmpty() && exclude.isEmpty()){
+			return new ArrayList<ObjectId>();
+		}
+		
+		if(!include.isEmpty()){
+			for (String id : include) {
+				if(StringTool.isValid(id)){
+					if(StringTool.isValidObjectID(id)){
+						@SuppressWarnings("unchecked")
+						List<ObjectId> result = coll.distinct("imageID", new BasicDBObject("userID", new ObjectId(id)));
+						System.out.println("retain: " + result);
+						if(resultList.isEmpty()){
+							resultList.addAll(result);
+						}
+						else{
+						resultList.retainAll(result);
+						}
+					}
+				}
+			}
+		}
+		
+		if(!exclude.isEmpty()){
+			for (String id : exclude) {
+				if(StringTool.isValid(id)){
+					if(StringTool.isValidObjectID(id)){
+						@SuppressWarnings("unchecked")
+						List<ObjectId> result = coll.distinct("imageID", new BasicDBObject("userID", new ObjectId(id)));
+						System.out.println("remove: " + result);
+						resultList.removeAll(result);
+					}
+				}
+			}
+		}
+		return resultList;
+	}
 }

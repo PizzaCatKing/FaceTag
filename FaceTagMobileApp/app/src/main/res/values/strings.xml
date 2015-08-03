@@ -15,5 +15,6 @@
     <string name="title_activity_image_view">ImageViewActivity</string>
     <string name="title_activity_rectangles">RectanglesActivity</string>
     <string name="title_activity_friend_picker">FriendPickerActivity</string>
+    <string name="title_activity_search">SearchActivity</string>
 
 </resources>
