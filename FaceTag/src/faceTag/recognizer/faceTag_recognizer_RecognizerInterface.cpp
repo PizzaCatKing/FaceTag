@@ -22,7 +22,7 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_detec
 	jclass jClassRecognizerInterface = env->GetObjectClass(thisObj);
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
 	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
-	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "recognizerExtention" , "Ljava/lang/String;");
 	jstring _filesLocation = (jstring)env->GetObjectField(thisObj, fid_pathString);
 	jstring _imageLocation = (jstring)env->GetObjectField(thisObj, fid_imagePathString);
 	jstring _recognizerLocation = (jstring)env->GetObjectField(thisObj, fid_recognizerPathString);
@@ -86,7 +86,7 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 	//Get fields
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
 	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
-	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "recognizerExtention" , "Ljava/lang/String;");
 	//get class methods we will be using
 	jmethodID rectGetImageIDMethod = env->GetMethodID(jClassRectangle, "getImageIDString", "()Ljava/lang/String;");
 	jmethodID rectGetUserIDMethod = env->GetMethodID(jClassRectangle, "getUserIDString", "()Ljava/lang/String;");
@@ -226,7 +226,7 @@ JNIEXPORT jboolean JNICALL Java_faceTag_recognizer_RecognizerInterface_updateRec
 	jclass jClassRecognizerInterface = env->GetObjectClass(thisObj);
 	jfieldID fid_pathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
 	jfieldID fid_imagePathString = env->GetFieldID(jClassRecognizerInterface, "imageExtention" , "Ljava/lang/String;");
-	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "filesLocation" , "Ljava/lang/String;");
+	jfieldID fid_recognizerPathString = env->GetFieldID(jClassRecognizerInterface, "recognizerExtention" , "Ljava/lang/String;");
 
 	jstring _filesLocation = (jstring)env->GetObjectField(thisObj, fid_pathString);
 	jstring _imageLocation = (jstring)env->GetObjectField(thisObj, fid_imagePathString);
