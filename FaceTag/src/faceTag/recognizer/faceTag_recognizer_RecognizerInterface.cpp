@@ -118,7 +118,7 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 
 
 	int idCount = env->GetArrayLength(_userIDS);
-	Ptr<FaceRecognizer> recognizers[idCount];
+	Ptr<FaceRecognizer>* recognizers = new Ptr<FaceRecognizer>[idCount];
 	//Load recognizers
 	for (int i=0; i < idCount; i++) {
 		jstring userIDString = (jstring) env->GetObjectArrayElement(_userIDS, i);
@@ -215,7 +215,7 @@ JNIEXPORT jobjectArray JNICALL Java_faceTag_recognizer_RecognizerInterface_recgo
 		}
 	}
 	//Return string array
-
+	delete[] recognizers;
 	return ret;
 }
 
