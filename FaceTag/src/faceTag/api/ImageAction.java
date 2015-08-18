@@ -15,20 +15,20 @@ public class ImageAction {
 	@GET
 	@Path("/{imageid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getImage(@PathParam("imageid") String imageid, @QueryParam("userID") String username,
+	public Response getImage(@PathParam("imageid") String imageid, @QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
 
-		return ImageController.getImage(username, token, imageid);
+		return ImageController.getImage(userID, token, imageid);
 
 	}
 	
 	@GET
 	@Path("/search")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response searchForImages(@QueryParam("userID") String username,@QueryParam("token") String token,
+	public Response searchForImages(@QueryParam("userID") String userID,@QueryParam("token") String token,
 			@QueryParam("include") final List<String> includeList, @QueryParam("exclude") final List<String> excludeList) {
 
-		return ImageController.searchForImages(username, token, includeList, excludeList);
+		return ImageController.searchForImages(userID, token, includeList, excludeList);
 
 	}
 

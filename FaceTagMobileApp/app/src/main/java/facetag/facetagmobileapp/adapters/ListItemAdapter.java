@@ -29,9 +29,6 @@ public class ListItemAdapter extends ArrayAdapter<ListItem> {
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
         ListItem item = getItem(position);
-
-
-        Log.d("DEBUG --- ---", "R At: " + position + " " + item.isSection());
         if(item.isSection()){
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_section, parent, false);
             convertView.setLongClickable(false);
@@ -43,9 +40,6 @@ public class ListItemAdapter extends ArrayAdapter<ListItem> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_user, parent, false);
         }
 
-        Log.d("DEBUG --- ---", "R At: " + position + " " + convertView.getClass().toString());
-
-
         if(item.isSection()) {
 
             SectionItem header = (SectionItem) item;
@@ -54,7 +48,6 @@ public class ListItemAdapter extends ArrayAdapter<ListItem> {
             if(sectionView != null) {
                 sectionView.setText(header.getTitle());
             }
-            Log.d("DEBUG --- ---", "At: " + position + " " + header.getTitle());
         }
         else{
             User user = (User)item;
@@ -68,7 +61,6 @@ public class ListItemAdapter extends ArrayAdapter<ListItem> {
             if(userID != null) {
                 userID.setText(user.getUserID());
              }
-            Log.d("DEBUG --- ---", "At: " + position + " " + user.getName());
         }
 
         return convertView;

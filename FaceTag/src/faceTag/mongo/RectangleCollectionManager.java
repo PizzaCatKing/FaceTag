@@ -75,7 +75,6 @@ public class RectangleCollectionManager {
 					if(StringTool.isValidObjectID(id)){
 						@SuppressWarnings("unchecked")
 						List<ObjectId> result = coll.distinct("imageID", new BasicDBObject("userID", new ObjectId(id)));
-						System.out.println("retain: " + result);
 						if(resultList.isEmpty()){
 							resultList.addAll(result);
 						}
@@ -93,7 +92,6 @@ public class RectangleCollectionManager {
 					if(StringTool.isValidObjectID(id)){
 						@SuppressWarnings("unchecked")
 						List<ObjectId> result = coll.distinct("imageID", new BasicDBObject("userID", new ObjectId(id)));
-						System.out.println("remove: " + result);
 						resultList.removeAll(result);
 					}
 				}

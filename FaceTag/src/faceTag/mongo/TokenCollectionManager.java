@@ -43,7 +43,6 @@ public class TokenCollectionManager {
 	public static Token addToken(ObjectId userID) {
 		//Generate a new token
 		String token = TokenGeneratorSingleton.getInstance().generateToken();
-		System.out.println(userID.toHexString());
 		Token newToken = new Token(userID, token);
 		DBCollection coll = getTokenCollection();
 		coll.insert(newToken);

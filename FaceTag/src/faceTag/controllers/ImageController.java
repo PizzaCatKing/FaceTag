@@ -81,8 +81,9 @@ public class ImageController {
 			file.getParentFile().mkdirs();
 			if (!file.exists()) {
 				file.createNewFile();
+				System.out.println("CREATED" + file.getAbsolutePath());
 			}
-			System.out.println(file.getAbsolutePath());
+			
 			imageOutFile = new FileOutputStream(file);
 
 			imageOutFile.write(imageDataBytes);
@@ -209,12 +210,10 @@ public class ImageController {
 			return Response.status(Response.Status.BAD_REQUEST).entity(JSON.serialize(toReturn))
 					.type(MediaType.APPLICATION_JSON).build();
 		}
-		/*
 		Response tokenValidation = TokenController.validateToken(_id, token);
 		if (tokenValidation != null) {
 			return tokenValidation;
 		}
-		*/
 		// change arrays of userIDs to ObjectIds
 
 		List<ObjectId> imageIDs =  RectangleCollectionManager.getImagesWithUsers(include, exclude);
@@ -224,7 +223,6 @@ public class ImageController {
 		
 		BasicDBList images = new BasicDBList();
 		if(cursor != null){
-			System.out.println(imageIDs.toString() + " "  +	cursor.count());
 			
 			for (DBObject image : cursor) {
 				BasicDBObject imageToSerialize = new BasicDBObject(image.toMap());

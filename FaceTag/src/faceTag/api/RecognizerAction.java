@@ -44,7 +44,6 @@ public class RecognizerAction {
 				rectangles = multivaluedMap.getFirst("rectangles");
 			}
 		}
-		System.out.println("Token: " + token + " id" + userID + " rect: " + rectangles);
 		return RecognizerController.setRectangles(userID, token, imageid, rectangles);
 	}
 	
@@ -55,7 +54,6 @@ public class RecognizerAction {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response generateRectangles(@PathParam("imageid") String imageid, @QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
-		
 		return RecognizerController.getNewRectangles(userID, token, imageid);
 	}
 }

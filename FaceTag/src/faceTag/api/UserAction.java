@@ -13,35 +13,35 @@ public class UserAction {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getAllUsers(@QueryParam("userID") String username,
+	public Response getAllUsers(@QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
-		return UserController.getAllUsers(username, token);
+		return UserController.getAllUsers(userID, token);
 	}
 	
 	// get a user's info
 	@GET
-	@Path("/{userid}")
+	@Path("/{targetID}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getUser(@PathParam("userid") String userid, @QueryParam("userID") String username,
+	public Response getUser(@PathParam("targetID") String targetID, @QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
-		return UserController.getUser(username, token, userid);
+		return UserController.getUser(userID, token, targetID);
 	}
 
 	// Get a list of a user's friends
 	@GET
-	@Path("/{userid}/friend")
+	@Path("/{targetID}/friend")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getUsersFriends(@PathParam("userid") String userid, @QueryParam("userID") String username,
+	public Response getUsersFriends(@PathParam("targetID") String targetID, @QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
-		return UserController.getUserFriends(username, token, userid);
+		return UserController.getUserFriends(userID, token, targetID);
 	}
 
 	// Add a user as a friend
 	@POST
-	@Path("/{userid}/friend")
+	@Path("/{targetID}/friend")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response addUserAsFriend(@PathParam("userid") String userid, MultivaluedMap<String, String> multivaluedMap) {
+	public Response addUserAsFriend(@PathParam("targetID") String targetID, MultivaluedMap<String, String> multivaluedMap) {
 		String userID = null;
 		String token = null;
 		if (multivaluedMap != null) {
@@ -53,15 +53,15 @@ public class UserAction {
 				token = multivaluedMap.getFirst("token");
 			}
 		}
-		return UserController.addFriend(userID, token, userid);
+		return UserController.addFriend(userID, token, targetID);
 	}
 
 	// Remove a user as a friend
 	@POST
-	@Path("/{userid}/friend/delete")
+	@Path("/{targetID}/friend/delete")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response removeUserAsFriend(@PathParam("userid") String userid,
+	public Response removeUserAsFriend(@PathParam("targetID") String targetID,
 			MultivaluedMap<String, String> multivaluedMap) {
 		String userID = null;
 		String token = null;
@@ -74,15 +74,15 @@ public class UserAction {
 				token = multivaluedMap.getFirst("token");
 			}
 		}
-		return UserController.deleteFriend(userID, token, userid);
+		return UserController.deleteFriend(userID, token, targetID);
 	}
 
 	// Get a user's images (image data is not sent over)
 	@GET
-	@Path("/{userid}/images")
+	@Path("/{targetID}/images")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getUsersImages(@PathParam("userid") String userid, @QueryParam("userID") String username,
+	public Response getUsersImages(@PathParam("targetID") String targetID, @QueryParam("userID") String userID,
 			@QueryParam("token") String token) {
-		return UserController.getImagesForUser(username, token, userid);
+		return UserController.getImagesForUser(userID, token, targetID);
 	}
 }

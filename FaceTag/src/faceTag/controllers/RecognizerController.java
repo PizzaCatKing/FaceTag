@@ -124,8 +124,6 @@ public static Response setRectangles(String _id, String token, String imageID, S
 		
 		rectangles = RectangleCollectionManager.updateRectangles(rectangles);
 		
-
-		System.out.println(" -- " + JSON.serialize(rectangles));
 		RecognizerInterface.getInstance().updateRecognizer(rectArray.toArray(new Rectangle[rectArray.size()]));
 		for(Object obj : rectangles){
 			((DBObject) obj).put("rectID",((ObjectId)((DBObject) obj).get("_id")).toHexString());
@@ -191,7 +189,6 @@ public static Response setRectangles(String _id, String token, String imageID, S
 		String[] userIDArray = new String[friendList.size()];
 		for (int i=0; i< friendList.size(); i++) {
 			userIDArray[i] = ((ObjectId) ((DBObject)friendList.get(i)).get("_id")).toHexString();
-			System.out.println("Got " + userIDArray[i]);
 		}
 
 		for(Rectangle rect : detected){
@@ -203,7 +200,6 @@ public static Response setRectangles(String _id, String token, String imageID, S
 		
 		
 		for(int i =0; i< detected.length; i++){
-			System.out.println("Got " + recognized[i]);
 			if(!recognized[i].equals("")){
 				detected[i].put("userID", new ObjectId(recognized[i]));
 			}
@@ -236,7 +232,6 @@ public static Response setRectangles(String _id, String token, String imageID, S
 				rectangles.add(rectangleToSerialize);
 			}
 		}
-		System.out.println("Response: " + JSON.serialize(rectangles));
 		return Response.ok(JSON.serialize(rectangles), MediaType.APPLICATION_JSON).build();
 	}
 }

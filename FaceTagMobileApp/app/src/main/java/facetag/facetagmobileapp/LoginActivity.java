@@ -78,7 +78,7 @@ public class LoginActivity extends ActionBarActivity {
 
 
     private class getTokenTask extends AsyncTask<String, Void, ResponseEntity<String>> {
-
+        Boolean noServer = false;
         @Override
         protected ResponseEntity<String> doInBackground(String... params) {
             if (params.length < 2) {
@@ -105,8 +105,13 @@ public class LoginActivity extends ActionBarActivity {
                     .queryParam("password", password);
 
             restTemplate.setErrorHandler(new FaceTagSpringErrorHandler());
-
-            return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+            try {
+                return restTemplate.getForEntity(builder.build().encode().toUri(), String.class);
+            }
+            catch (Exception e){
+                noServer = true;
+                return null;
+            }
         }
 
         @Override
@@ -115,7 +120,13 @@ public class LoginActivity extends ActionBarActivity {
             if (result == null) {
                 //Invalid input! Tell the user to make better entries
                 Context context = getApplicationContext();
-                CharSequence text = "Please fill in all the fields";
+                CharSequence text;
+                if(noServer){
+                    text = "No server found at " + Globals.SERVER_ADDRESS;
+                }
+                else{
+                    text = "Please fill in all the fields";
+                }
                 int duration = Toast.LENGTH_SHORT;
 
                 Toast toast = Toast.makeText(context, text, duration);
